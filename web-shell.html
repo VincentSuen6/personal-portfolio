@@ -1,0 +1,1317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vincent — void://blueteam</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --base: #1e1e2e;
+    --mantle: #181825;
+    --crust: #11111b;
+    --surface0: #313244;
+    --surface1: #45475a;
+    --surface2: #585b70;
+    --overlay0: #6c7086;
+    --overlay1: #7f849c;
+    --text: #cdd6f4;
+    --subtext0: #a6adc8;
+    --subtext1: #bac2de;
+    --lavender: #b4befe;
+    --blue: #89b4fa;
+    --sapphire: #74c7ec;
+    --sky: #89dceb;
+    --teal: #94e2d5;
+    --green: #a6e3a1;
+    --yellow: #f9e2af;
+    --peach: #fab387;
+    --maroon: #eba0ac;
+    --red: #f38ba8;
+    --mauve: #cba6f7;
+    --pink: #f5c2e7;
+    --flamingo: #f2cdcd;
+  }
+
+  /* HACK MODE overrides */
+  body.hacked {
+    --blue: #ff4444;
+    --sapphire: #ff3333;
+    --sky: #ff5555;
+    --teal: #ff4444;
+    --green: #ff6666;
+    --mauve: #ff3333;
+    --text: #ffcccc;
+    --subtext0: #ff9999;
+    --subtext1: #ffbbbb;
+    --lavender: #ff4444;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--crust);
+    color: var(--text);
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    position: relative;
+    transition: color 0.4s;
+  }
+
+  /* WALLPAPER */
+  #wallpaper {
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 50%, rgba(137,180,250,0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(203,166,247,0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 60% 80%, rgba(166,227,161,0.06) 0%, transparent 50%),
+      linear-gradient(135deg, #0a0a0f 0%, #11111b 40%, #0d0d1a 100%);
+    z-index: 0;
+    transition: background 0.6s;
+  }
+  body.hacked #wallpaper {
+    background:
+      radial-gradient(ellipse at 20% 50%, rgba(255,50,50,0.12) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(200,0,0,0.10) 0%, transparent 50%),
+      radial-gradient(ellipse at 60% 80%, rgba(255,0,0,0.08) 0%, transparent 50%),
+      linear-gradient(135deg, #0f0000 0%, #1a0000 40%, #0d0005 100%);
+  }
+
+  #wallpaper::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.008) 2px, rgba(255,255,255,0.008) 4px);
+    pointer-events: none;
+  }
+  #wallpaper::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle, rgba(137,180,250,0.15) 1px, transparent 1px);
+    background-size: 40px 40px;
+    opacity: 0.3;
+    transition: opacity 0.4s;
+  }
+  body.hacked #wallpaper::after {
+    background-image: radial-gradient(circle, rgba(255,50,50,0.2) 1px, transparent 1px);
+    opacity: 0.4;
+  }
+
+  /* TERMINAL WINDOW */
+  #terminal-window {
+    position: fixed;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow:
+      0 0 0 1px rgba(137,180,250,0.05),
+      0 25px 60px rgba(0,0,0,0.8),
+      0 0 80px rgba(137,180,250,0.05),
+      inset 0 1px 0 rgba(255,255,255,0.05);
+    background: rgba(30,30,46,0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    overflow: hidden;
+  }
+  body.hacked #terminal-window {
+    border-color: rgba(255,50,50,0.3);
+    box-shadow:
+      0 0 0 1px rgba(255,50,50,0.1),
+      0 25px 60px rgba(0,0,0,0.8),
+      0 0 80px rgba(255,0,0,0.15),
+      inset 0 1px 0 rgba(255,50,50,0.1);
+  }
+
+  #terminal-window.fullscreen { inset: 20px; max-height: calc(100vh - 40px); }
+  #terminal-window.minimized { bottom: 20px; left: 20px; width: 420px; height: 280px; inset: unset; }
+
+  #terminal-window.overlay {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    top: unset;
+    width: min(720px, calc(100vw - 48px));
+    height: 360px;
+    transform: translateX(-50%);
+    z-index: 150;
+    display: flex;
+    flex-direction: column;
+    animation: slideUp 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateX(-50%) translateY(16px); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+
+  #terminal-window.hidden {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: translateX(-50%) translateY(8px) scale(0.97) !important;
+  }
+  #terminal-window.fullscreen .dot { opacity: 0.3; pointer-events: none; cursor: default; }
+
+  #title-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: rgba(17,17,27,0.6);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    flex-shrink: 0;
+    transition: background 0.4s;
+  }
+  body.hacked #title-bar { background: rgba(30,0,0,0.7); border-bottom-color: rgba(255,50,50,0.2); }
+
+  .dot { width: 12px; height: 12px; border-radius: 50%; cursor: pointer; transition: opacity 0.2s; }
+  .dot:hover { opacity: 0.7; }
+  .dot-red    { background: #ff5f57; }
+  .dot-yellow { background: #ffbd2e; }
+  .dot-green  { background: #28c840; }
+
+  #title-text {
+    margin-left: 12px;
+    font-size: 12px;
+    color: var(--overlay0);
+    font-weight: 500;
+    letter-spacing: 0.05em;
+  }
+
+  #terminal-body {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 16px;
+    font-size: 13px;
+    line-height: 1.6;
+    scrollbar-width: thin;
+    scrollbar-color: var(--surface1) transparent;
+  }
+  #terminal-body::-webkit-scrollbar { width: 4px; }
+  #terminal-body::-webkit-scrollbar-thumb { background: var(--surface1); border-radius: 2px; }
+
+  .line { margin-bottom: 2px; white-space: pre-wrap; word-break: break-all; }
+  .line-success { color: var(--green); }
+  .line-error   { color: var(--red); }
+  .line-warning { color: var(--yellow); }
+  .line-info    { color: var(--blue); }
+  .line-muted   { color: var(--overlay0); }
+  .line-mauve   { color: var(--mauve); }
+  .line-peach   { color: var(--peach); }
+  .line-sky     { color: var(--sky); }
+  .line-teal    { color: var(--teal); }
+  .line-red     { color: var(--red); }
+  .line-prompt  { color: var(--text); }
+
+  /* HACK-specific line colours */
+  .line-hack-alert { color: #ff2222; font-weight: 600; }
+  .line-hack-ok    { color: #ff6666; }
+  .line-hack-sys   { color: #ffaa44; }
+
+  #input-area {
+    display: flex;
+    align-items: center;
+    padding: 8px 16px 14px;
+    gap: 0;
+    flex-shrink: 0;
+  }
+  #prompt-label {
+    color: var(--mauve);
+    font-weight: 600;
+    font-size: 13px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  #cmd-input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    flex: 1;
+    caret-color: var(--green);
+    margin-left: 8px;
+  }
+  body.hacked #cmd-input { caret-color: #ff4444; }
+
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+  .cursor { display:inline-block;width:8px;height:14px;background:var(--green);animation:blink 1s step-end infinite;vertical-align:middle;margin-left:1px; }
+
+  /* PROJECT VIEWER */
+  #project-viewer {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: none;
+    padding: 40px;
+    overflow-y: auto;
+    background: rgba(11,11,17,0.7);
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+  #project-viewer.visible { display: flex; align-items: flex-start; justify-content: center; }
+  #project-viewer.faded-in { opacity: 1; }
+  #project-content { max-width: 800px; width: 100%; padding-bottom: 160px; }
+
+  .project-header { margin-bottom: 32px; }
+  .project-tag {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    margin-right: 8px;
+  }
+  .tag-red    { background: rgba(243,139,168,0.15); color: var(--red);    border: 1px solid rgba(243,139,168,0.3); }
+  .tag-blue   { background: rgba(137,180,250,0.15); color: var(--blue);   border: 1px solid rgba(137,180,250,0.3); }
+  .tag-green  { background: rgba(166,227,161,0.15); color: var(--green);  border: 1px solid rgba(166,227,161,0.3); }
+  .tag-mauve  { background: rgba(203,166,247,0.15); color: var(--mauve);  border: 1px solid rgba(203,166,247,0.3); }
+  .tag-peach  { background: rgba(250,179,135,0.15); color: var(--peach);  border: 1px solid rgba(250,179,135,0.3); }
+  .tag-teal   { background: rgba(148,226,213,0.15); color: var(--teal);   border: 1px solid rgba(148,226,213,0.3); }
+  .tag-yellow { background: rgba(249,226,175,0.15); color: var(--yellow); border: 1px solid rgba(249,226,175,0.3); }
+
+  .project-title    { font-size: 42px; font-weight: 700; color: var(--text); line-height: 1.1; margin-bottom: 8px; letter-spacing: -0.02em; }
+  .project-subtitle { font-size: 15px; color: var(--subtext0); margin-bottom: 32px; line-height: 1.7; }
+
+  .divider { height: 1px; background: linear-gradient(90deg, var(--surface1), transparent); margin: 24px 0; }
+
+  .section-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--overlay0); margin-bottom: 12px; font-weight: 600; }
+  .project-desc  { font-size: 14px; color: var(--subtext1); line-height: 1.8; margin-bottom: 24px; }
+
+  .tech-stack { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 32px; }
+  .tech-pill {
+    padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 500;
+    background: var(--surface0); color: var(--subtext1); border: 1px solid var(--surface1);
+    transition: all 0.2s;
+  }
+  .tech-pill:hover { background: var(--surface1); color: var(--text); border-color: var(--overlay0); }
+
+  .feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 32px; }
+  .feature-card { background: var(--surface0); border: 1px solid var(--surface1); border-radius: 8px; padding: 16px; }
+  .feature-card h4 { font-size: 12px; color: var(--mauve); margin-bottom: 6px; font-weight: 600; }
+  .feature-card p  { font-size: 12px; color: var(--subtext0); line-height: 1.6; }
+
+  .stat-row { display: flex; gap: 24px; margin-bottom: 24px; }
+  .stat { text-align: center; }
+  .stat-number { font-size: 28px; font-weight: 700; color: var(--blue); display: block; }
+  .stat-label  { font-size: 11px; color: var(--overlay0); text-transform: uppercase; letter-spacing: 0.1em; }
+
+  .exit-hint { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--overlay0); margin-top: 8px; }
+  .exit-hint kbd {
+    background: var(--surface0); border: 1px solid var(--surface1);
+    padding: 2px 8px; border-radius: 4px; color: var(--subtext0);
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  }
+
+  /* SKILL BARS */
+  .skill-row { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
+  .skill-name { width: 160px; font-size: 12px; color: var(--subtext1); flex-shrink: 0; }
+  .skill-bar  { flex: 1; height: 3px; background: var(--surface0); border-radius: 2px; overflow: hidden; }
+  .skill-fill { height: 100%; background: var(--blue); border-radius: 2px; transition: width 0.8s ease; }
+  .skill-pct  { width: 36px; text-align: right; font-size: 11px; color: var(--overlay0); }
+
+  /* SCANLINE */
+  @keyframes scanline { 0% { transform: translateY(-100%); } 100% { transform: translateY(100vh); } }
+  .scanline {
+    position: fixed; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(transparent, rgba(166,227,161,0.06), transparent);
+    animation: scanline 8s linear infinite;
+    pointer-events: none; z-index: 200;
+    transition: background 0.5s;
+  }
+  body.hacked .scanline {
+    background: linear-gradient(transparent, rgba(255,50,50,0.15), transparent);
+    animation: scanline 2s linear infinite;
+  }
+
+  /* HACK GLITCH */
+  @keyframes glitch {
+    0%   { clip-path: inset(0 0 98% 0); transform: translateX(-6px) skewX(-4deg); }
+    15%  { clip-path: inset(15% 0 70% 0); transform: translateX(6px); }
+    30%  { clip-path: inset(50% 0 30% 0); transform: translateX(-4px); }
+    50%  { clip-path: inset(75% 0 5% 0);  transform: translateX(5px) skewX(3deg); }
+    100% { clip-path: inset(0); transform: none; }
+  }
+  @keyframes flicker {
+    0%,100%{opacity:1} 88%{opacity:1} 89%{opacity:0.2} 90%{opacity:1} 95%{opacity:0.6} 96%{opacity:1}
+  }
+  body.hacked { animation: flicker 4s infinite; }
+
+  /* LS GRID */
+  .ls-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 4px; }
+  .ls-dir  { color: var(--blue); font-weight: 600; }
+  .ls-file { color: var(--text); }
+
+  /* HELP TABLE */
+  .help-table { width: 100%; border-collapse: collapse; }
+  .help-table td { padding: 3px 12px 3px 0; font-size: 13px; }
+  .help-table td:first-child { color: var(--green); min-width: 160px; }
+  .help-table td:last-child  { color: var(--subtext0); }
+
+  /* ASCII */
+  .ascii-art { color: var(--blue); font-size: 11px; line-height: 1.2; white-space: pre; }
+
+  /* FAB */
+  #terminal-fab {
+    display: none;
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    z-index: 200;
+    align-items: center;
+    gap: 10px;
+    background: rgba(30,30,46,0.95);
+    border: 1px solid rgba(203,166,247,0.35);
+    border-radius: 40px;
+    padding: 10px 18px 10px 14px;
+    cursor: pointer;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.6), 0 0 0 1px rgba(203,166,247,0.1), 0 0 20px rgba(203,166,247,0.12);
+    backdrop-filter: blur(12px);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--mauve);
+    letter-spacing: 0.04em;
+    transition: all 0.2s ease;
+    animation: fabPop 0.3s cubic-bezier(0.175,0.885,0.32,1.275) forwards;
+  }
+  @keyframes fabPop { from{opacity:0;transform:scale(0.8) translateY(8px)} to{opacity:1;transform:scale(1) translateY(0)} }
+  #terminal-fab:hover { background: rgba(40,40,60,0.98); border-color: rgba(203,166,247,0.6); transform: translateY(-1px); }
+  body.hacked #terminal-fab { border-color: rgba(255,50,50,0.5); color: #ff4444; box-shadow: 0 4px 24px rgba(0,0,0,0.6), 0 0 20px rgba(255,0,0,0.2); }
+
+  #project-viewer::-webkit-scrollbar { width: 4px; }
+  #project-viewer::-webkit-scrollbar-thumb { background: var(--surface1); border-radius: 2px; }
+
+  @media (max-width: 640px) {
+    #terminal-window.fullscreen { inset: 0; border-radius: 0; }
+    #project-viewer { padding: 20px; }
+    .project-title { font-size: 28px; }
+    .feature-grid  { grid-template-columns: 1fr; }
+    #terminal-fab  { bottom: 20px; right: 20px; }
+    #terminal-window.overlay { width: calc(100vw - 32px); height: 280px; bottom: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="wallpaper"></div>
+<div class="scanline"></div>
+
+<div id="project-viewer">
+  <div id="project-content"></div>
+</div>
+
+<div id="terminal-window" class="fullscreen">
+  <div id="title-bar">
+    <div class="dot dot-red"    onclick="closeTerm()"></div>
+    <div class="dot dot-yellow" onclick="minimizeTerm()"></div>
+    <div class="dot dot-green"  onclick="maximizeTerm()"></div>
+    <span id="title-text">vincent@blueteam: ~</span>
+  </div>
+  <div id="terminal-body"></div>
+  <div id="input-area">
+    <span id="prompt-label">
+      <span style="color:var(--mauve);font-weight:700">vincent</span><span style="color:var(--overlay1)">@</span><span style="color:var(--blue)">blueteam</span> <span id="path-display" style="color:var(--teal)">~</span><span style="color:var(--green)"> $ </span>
+    </span>
+    <input type="text" id="cmd-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" disabled>
+  </div>
+</div>
+
+<div id="terminal-fab" onclick="toggleTerminalFab()">
+  <span style="font-size:14px;opacity:0.9">&gt;_</span>
+  <span>terminal</span>
+  <span style="font-size:10px;color:var(--overlay0);font-weight:400;margin-left:4px">` or click</span>
+</div>
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+
+const GHOST_ART = `
+    ██████
+   ██    ██
+  ██  ██  ██
+  ██  ██  ██
+   ██████████
+    █ ████ █
+    █      █`;
+
+const FILE_SYSTEM = {
+  '~': {
+    type: 'dir',
+    children: {
+
+      'projects': {
+        type: 'dir',
+        children: {
+
+          'honeypot-network': {
+            type: 'file',
+            data: {
+              title: 'Honeypot Network',
+              subtitle: 'Multi-node deception infrastructure for capturing real attacker TTPs',
+              tags: [{ label: 'Python', cls: 'tag-peach' }, { label: 'Docker', cls: 'tag-blue' }, { label: 'Threat Intel', cls: 'tag-teal' }],
+              description: `A multi-node honeypot infrastructure built to capture and analyze real-world attacker behaviour. Distributed across several decoy services — SSH, HTTP, FTP, and SMB — the network logged over 2,000 unique attack sessions over its first month of operation.
+
+All data was fed into a custom ELK stack for visualization and pattern analysis. Sessions were correlated by source IP, attack vector, and command sequence to surface recurring TTPs and automated scanning patterns.
+
+The most valuable insight was mapping attacker dwell time and pivot behaviour — watching how actors move from initial access attempts to lateral probing when they think they've found a foothold.`,
+              tech: ['T-Pot', 'ELK Stack', 'Python', 'Docker', 'Suricata', 'iptables'],
+              features: [
+                { title: '// Deception Layer', desc: 'SSH, HTTP, FTP, and SMB honeypots deployed across multiple decoy nodes — mimicking real services' },
+                { title: '// ELK Dashboards', desc: 'Custom Kibana dashboards for session correlation, IP geolocation, and TTP mapping' },
+                { title: '// TTP Capture', desc: '2,000+ unique attack sessions logged — lateral movement and persistence attempts recorded' },
+                { title: '// Alerting Pipeline', desc: 'Real-time alerts on novel attack signatures piped to SIEM for analyst review' }
+              ],
+              stats: [{ n: '2000+', l: 'Sessions' }, { n: '4', l: 'Protocols' }, { n: 'Live', l: 'Status' }],
+            }
+          },
+
+          'siem-detection-rules': {
+            type: 'file',
+            data: {
+              title: 'SIEM Detection Rules',
+              subtitle: '40+ custom Splunk detection rules — 60% false positive reduction via behavioral baselining',
+              tags: [{ label: 'Splunk', cls: 'tag-mauve' }, { label: 'Sigma', cls: 'tag-blue' }, { label: 'ATT&CK', cls: 'tag-green' }],
+              description: `Authored and tuned a library of 40+ detection rules for a Splunk SIEM environment. The project started as a false-positive reduction exercise — the existing ruleset was generating enough noise to bury real alerts in the queue.
+
+The approach was behavioral baselining: establish what "normal" looks like per-user and per-host over a rolling 30-day window, then trigger only on statistically significant deviations. Rules were mapped to MITRE ATT&CK techniques to ensure coverage was systematic rather than reactive.
+
+End result: 60% reduction in false positives. P1 mean time to acknowledge dropped from 18 minutes to under 4.`,
+              tech: ['Splunk SPL', 'Python', 'Sigma Rules', 'MITRE ATT&CK', 'Behavioral Analysis'],
+              features: [
+                { title: '// Behavioral Baseline', desc: 'Rolling 30-day user and host baselines — deviations trigger, not static thresholds' },
+                { title: '// ATT&CK Mapped', desc: 'Every rule tagged to a MITRE technique — coverage gaps surfaced and prioritized' },
+                { title: '// 60% FP Reduction', desc: 'Alert queue noise cut by 60% — P1 MTTA dropped from 18 min to under 4 min' },
+                { title: '// Sigma Export', desc: 'Rules exported in Sigma format for portability across SIEM platforms' }
+              ],
+              stats: [{ n: '40+', l: 'Rules' }, { n: '60%', l: 'FP Reduction' }, { n: '<4min', l: 'P1 MTTA' }],
+            }
+          },
+
+          'phishing-triage-tool': {
+            type: 'file',
+            data: {
+              title: 'Phishing Triage Tool',
+              subtitle: 'Automated phishing email analysis pipeline with VirusTotal enrichment',
+              tags: [{ label: 'Python', cls: 'tag-peach' }, { label: 'VirusTotal', cls: 'tag-red' }, { label: 'IR', cls: 'tag-blue' }],
+              description: `An automated triage pipeline for phishing reports submitted to the SOC inbox. Before this, analysts were manually parsing email headers, extracting URLs, and running VirusTotal checks one-by-one — a slow process that created a backlog during phishing campaigns.
+
+The tool ingests raw .eml files, extracts headers, sender reputation metadata, embedded URLs, and attachment hashes. Each IOC is automatically enriched via the VirusTotal API and scored. The output is a structured triage report — verdict, confidence score, and recommended action — generated in under 30 seconds per email.
+
+During a simulated spear-phishing campaign test, the tool correctly flagged 97% of malicious samples and cut analyst triage time by 80%.`,
+              tech: ['Python', 'VirusTotal API', 'SMTP / MIME parsing', 'IOC extraction', 'Pandas'],
+              features: [
+                { title: '// Header Analysis', desc: 'Full SMTP header parsing — SPF, DKIM, DMARC checks, relay chain reconstruction' },
+                { title: '// IOC Extraction', desc: 'URLs, domains, hashes, and IPs automatically extracted and deobfuscated' },
+                { title: '// VT Enrichment', desc: 'All IOCs checked against VirusTotal API — community scores and detections surfaced' },
+                { title: '// Triage Report', desc: 'Structured verdict report generated in <30s — verdict, confidence score, action recommendation' }
+              ],
+              stats: [{ n: '97%', l: 'Detection Rate' }, { n: '80%', l: 'Time Saved' }, { n: '<30s', l: 'Per Email' }],
+            }
+          },
+
+          'network-anomaly-detector': {
+            type: 'file',
+            data: {
+              title: 'Network Anomaly Detector',
+              subtitle: 'ML-assisted traffic profiler flagging lateral movement and exfiltration patterns',
+              tags: [{ label: 'Python', cls: 'tag-peach' }, { label: 'ML', cls: 'tag-mauve' }, { label: 'Zeek', cls: 'tag-teal' }],
+              description: `A machine learning-assisted network traffic analyzer that baselines normal enterprise traffic patterns and flags statistically anomalous behaviour indicative of lateral movement or data exfiltration.
+
+Built on top of Zeek log output, the tool trains an Isolation Forest model on connection frequency, byte volume, port usage, and timing patterns per host. Anomalies are scored and ranked — the highest-confidence detections are surfaced for analyst review via a lightweight dashboard.
+
+Tested against a PCAP corpus of real APT lateral movement samples (from public threat intel sharing repositories). Detected 89% of lateral movement events with a false positive rate under 3%.`,
+              tech: ['Python', 'scikit-learn', 'Zeek', 'Wireshark', 'Isolation Forest', 'Pandas'],
+              features: [
+                { title: '// Behavioral Baseline', desc: 'Per-host traffic profiles built over a 14-day window — volume, timing, port, and peer patterns' },
+                { title: '// Isolation Forest', desc: 'Unsupervised anomaly detection — no labeled training data required, adapts to environment' },
+                { title: '// Lateral Movement', desc: '89% detection rate on APT lateral movement PCAP corpus — sub-3% false positive rate' },
+                { title: '// Zeek Integration', desc: 'Runs directly on Zeek conn.log output — no additional sensors or agents required' }
+              ],
+              stats: [{ n: '89%', l: 'Detection' }, { n: '<3%', l: 'False Positive' }, { n: 'Zeek', l: 'Input' }],
+            }
+          },
+
+          'ir-runbook-automation': {
+            type: 'file',
+            data: {
+              title: 'IR Runbook Automation',
+              subtitle: 'Scripted incident response playbooks — auto-isolate, collect, and page on P1',
+              tags: [{ label: 'Python', cls: 'tag-peach' }, { label: 'PowerShell', cls: 'tag-blue' }, { label: 'IR', cls: 'tag-green' }],
+              description: `Automated incident response playbooks covering the most common P1 and P2 scenarios in the SOC. When a high-confidence detection fires in the SIEM, the runbook engine triggers the appropriate playbook without waiting for analyst acknowledgement.
+
+Each playbook handles: endpoint isolation via EDR API, forensic artifact collection (memory, event logs, prefetch, registry hives), evidence packaging and upload to case management, and on-call paging via PagerDuty. The time between alert fire and containment dropped from an average of 23 minutes to under 6.
+
+Playbooks cover: ransomware staging, credential dumping, C2 beacon establishment, and insider threat data staging patterns.`,
+              tech: ['Python', 'PowerShell', 'PagerDuty API', 'EDR API', 'SIEM Integration'],
+              features: [
+                { title: '// Auto-Isolation', desc: 'Affected endpoints isolated via EDR API within seconds of P1 alert — no analyst action required' },
+                { title: '// Artifact Collection', desc: 'Memory, event logs, prefetch, registry hives collected and packaged automatically' },
+                { title: '// On-Call Paging', desc: 'PagerDuty integration pages on-call analyst with case summary and timeline' },
+                { title: '// 4 Scenario Coverage', desc: 'Ransomware staging, cred dumping, C2 beacon, insider data staging — each with dedicated playbook' }
+              ],
+              stats: [{ n: '<6min', l: 'Containment' }, { n: '4', l: 'Scenarios' }, { n: 'Auto', l: 'Trigger' }],
+            }
+          }
+
+        }
+      },
+
+      // EXPERIENCE
+      'experience': {
+        type: 'dir',
+        children: {
+          'soc-analyst.md': {
+            type: 'file',
+            data: {
+              title: 'SOC Analyst',
+              subtitle: '[Your Company] · Current Role',
+              tags: [{ label: 'Current', cls: 'tag-green' }, { label: 'Blue Team', cls: 'tag-blue' }],
+              description: `Working as a SOC analyst — primary responsibilities are alert triage, detection engineering, and threat hunting.
+
+Daily operations involve monitoring 500+ endpoint alerts across the SIEM platform, triaging P1–P3 incidents through to resolution or escalation, and continuously tuning detection rules to reduce alert fatigue without sacrificing coverage.
+
+Beyond reactive work, running proactive threat hunts using MITRE ATT&CK as the framework — looking for attacker behaviour that hasn't triggered an alert yet. Most recent hunt identified a persistence mechanism that had been sitting undetected for 11 days.`,
+              tech: ['Splunk', 'CrowdStrike', 'Elastic SIEM', 'MITRE ATT&CK', 'Python', 'Wireshark'],
+              features: [
+                { title: '// Alert Triage', desc: '500+ endpoint alerts monitored daily — P1 through P3 triaged, investigated, and resolved or escalated' },
+                { title: '// Detection Engineering', desc: 'Ongoing SIEM rule authoring and tuning — behavioral baselines, ATT&CK-mapped coverage' },
+                { title: '// Threat Hunting', desc: 'Proactive hunts using MITRE ATT&CK — most recent surfaced 11-day undetected persistence' },
+                { title: '// Incident Response', desc: 'Active participation in P1 IR — containment, forensics, timeline reconstruction, and post-incident reports' }
+              ],
+              stats: [{ n: '500+', l: 'Daily Alerts' }, { n: 'P1–P3', l: 'Coverage' }, { n: '2023–', l: 'Timeline' }],
+            }
+          },
+          'security-intern.md': {
+            type: 'file',
+            data: {
+              title: 'IT Security Intern',
+              subtitle: '[Your Company] · 2022–2023',
+              tags: [{ label: 'Internship', cls: 'tag-mauve' }, { label: 'Security', cls: 'tag-blue' }],
+              description: `First industry security role — working across vulnerability management, log analysis, and documentation.
+
+Core responsibilities included running Nessus scans across internal asset ranges, triaging findings by CVSS score and exploitability, and coordinating with system owners on patch scheduling. Wrote remediation guidance for 15+ common vulnerability classes.
+
+Also built out the first version of the SOC's incident response runbook library — 12 documented playbooks covering the most common alert scenarios, which became the foundation for the later automation work.`,
+              tech: ['Nessus', 'Splunk', 'Python', 'Bash', 'Wireshark'],
+              features: [
+                { title: '// Vulnerability Management', desc: 'Nessus scans across internal ranges — CVSS triage, patch coordination, remediation guidance' },
+                { title: '// Log Analysis', desc: 'Network log review for anomalous patterns — first exposure to SIEM workflows and correlation logic' },
+                { title: '// Runbook Development', desc: 'Authored 12 IR playbooks covering common SOC alert scenarios — still in use post-internship' },
+                { title: '// Patch Management', desc: 'Coordinated with system owners on remediation scheduling — tracked patch compliance across asset inventory' }
+              ],
+              stats: [{ n: '12', l: 'Runbooks' }, { n: 'Nessus', l: 'Primary Tool' }, { n: '2022–23', l: 'Timeline' }],
+            }
+          }
+        }
+      },
+
+      // SKILLS
+      'skills': {
+        type: 'dir',
+        children: {
+          'platforms.md': {
+            type: 'file',
+            data: {
+              title: 'platforms.md',
+              subtitle: 'SIEM, EDR, and blue team tooling — daily drivers',
+              tags: [{ label: 'Skills', cls: 'tag-green' }, { label: 'Platforms', cls: 'tag-blue' }],
+              description: `Tools I work with daily across detection, hunting, and response. Honest proficiency — no filler.`,
+              tech: [],
+              features: [
+                { title: '// Splunk', desc: 'Primary SIEM — SPL queries, detection rule authoring, dashboards, and scheduled searches. Most comfortable here.' },
+                { title: '// Elastic SIEM', desc: 'KQL queries, Kibana dashboards, and ECS-mapped detection rules. Used heavily in the honeypot project.' },
+                { title: '// Wireshark / Zeek', desc: 'PCAP analysis for forensics and anomaly detection. Comfortable reading full packet captures and Zeek conn logs.' },
+                { title: '// Snort / Suricata', desc: 'IDS/IPS rule writing and tuning. Network-layer detection as a complement to host-based coverage.' },
+                { title: '// CrowdStrike Falcon', desc: 'EDR telemetry, process tree analysis, and host isolation via API. Used in IR automation work.' },
+                { title: '// Nessus', desc: 'Vulnerability scanning, CVSS triage, and remediation tracking across internal asset inventories.' }
+              ],
+              stats: [{ n: 'Splunk', l: 'Primary SIEM' }, { n: 'CrowdStrike', l: 'EDR' }, { n: '6+', l: 'Platforms' }],
+            }
+          },
+          'languages.md': {
+            type: 'file',
+            data: {
+              title: 'languages.md',
+              subtitle: 'Programming and scripting languages used in security work',
+              tags: [{ label: 'Skills', cls: 'tag-green' }, { label: 'Languages', cls: 'tag-peach' }],
+              description: `Languages I actually write in security work — scripting, automation, and detection logic. No buzzword filler.`,
+              tech: [],
+              features: [
+                { title: '// Python', desc: 'Primary scripting language — phishing triage tools, IR automation, API integrations, and data analysis. Most comfortable here.' },
+                { title: '// Bash / ZSH', desc: 'Daily shell environment. Write scripts for log parsing, system enumeration, and SOC workflow automation routinely.' },
+                { title: '// PowerShell', desc: 'Windows IR and forensics — artifact collection, event log parsing, and EDR API calls from the IR runbook suite.' },
+                { title: '// SQL / SPL', desc: 'Splunk SPL and SQL for SIEM queries, data extraction, and detection rule logic. Heavy daily use in the SOC.' },
+                { title: '// YARA', desc: 'Malware signature rules for file-based detection — used in sandboxed analysis and EDR integration.' }
+              ],
+              stats: [{ n: 'Python', l: 'Primary' }, { n: '5', l: 'Languages' }, { n: 'YARA', l: 'Signatures' }],
+            }
+          },
+          'frameworks.md': {
+            type: 'file',
+            data: {
+              title: 'frameworks.md',
+              subtitle: 'Security frameworks and methodologies — how I structure defense',
+              tags: [{ label: 'Skills', cls: 'tag-green' }, { label: 'Frameworks', cls: 'tag-teal' }],
+              description: `Frameworks aren't checkboxes — they're how I structure coverage decisions, prioritize hunting targets, and communicate risk. These are the ones I apply regularly.`,
+              tech: ['MITRE ATT&CK', 'NIST CSF', 'CIS Controls', 'ISO 27001', 'PICERL', 'Diamond Model'],
+              features: [
+                { title: '// MITRE ATT&CK', desc: 'Primary reference for detection engineering and threat hunting — every rule and hunt is mapped to a technique. Used daily.' },
+                { title: '// PICERL (IR Lifecycle)', desc: 'Preparation, Identification, Containment, Eradication, Recovery, Lessons Learned — structures every incident response.' },
+                { title: '// NIST CSF', desc: 'Identify, Protect, Detect, Respond, Recover — used for program-level gap analysis and security posture conversations.' },
+                { title: '// Diamond Model', desc: 'Adversary-capability-infrastructure-victim model — used in threat intelligence analysis and campaign attribution work.' }
+              ],
+              stats: [{ n: 'ATT&CK', l: 'Primary' }, { n: 'PICERL', l: 'IR Method' }, { n: 'Daily', l: 'Usage' }],
+            }
+          }
+        }
+      },
+
+      // EDUCATION
+      'education': {
+        type: 'dir',
+        children: {
+          'security-plus.md': {
+            type: 'file',
+            data: {
+              title: 'CompTIA Security+',
+              subtitle: 'CompTIA · Certified',
+              tags: [{ label: 'Certificate', cls: 'tag-blue' }, { label: 'Completed', cls: 'tag-green' }],
+              description: `CompTIA Security+ — foundational security certification covering network security, threats and vulnerabilities, access control, cryptography, and compliance.
+
+Provided the formal vocabulary and framework coverage to complement practical SOC work. Particularly useful for structuring conversations around risk and control frameworks with non-technical stakeholders.`,
+              tech: ['Network Security', 'Cryptography', 'Access Control', 'Risk Management', 'Compliance'],
+              features: [
+                { title: '// Domain Coverage', desc: 'Threats, Attacks & Vulnerabilities · Architecture · Implementation · Operations & IR · Governance & Compliance' },
+                { title: '// Issuer', desc: 'CompTIA — globally recognized vendor-neutral security certification' },
+                { title: '// Relevance', desc: 'Formal foundation for SOC and blue team work — maps well to daily analyst responsibilities' },
+                { title: '// Status', desc: 'Certified and current' }
+              ],
+              stats: [{ n: 'CompTIA', l: 'Issuer' }, { n: 'SY0-701', l: 'Exam' }, { n: '✓', l: 'Certified' }],
+            }
+          },
+          'cysa-plus.md': {
+            type: 'file',
+            data: {
+              title: 'CompTIA CySA+',
+              subtitle: 'CompTIA · Cybersecurity Analyst · Certified',
+              tags: [{ label: 'Certificate', cls: 'tag-blue' }, { label: 'Completed', cls: 'tag-green' }],
+              description: `CompTIA CySA+ (Cybersecurity Analyst) — intermediate-level certification focused specifically on threat detection, SIEM analysis, incident response, and vulnerability management.
+
+More directly applicable to blue team work than Security+ — heavy emphasis on behavioral analytics, threat hunting methodology, and the analyst workflow. The detection and hunting content maps closely to daily SOC responsibilities.`,
+              tech: ['Threat Detection', 'SIEM Analysis', 'Incident Response', 'Threat Hunting', 'Vuln Management'],
+              features: [
+                { title: '// Detection Focus', desc: 'Behavioral analytics, SIEM correlation, log analysis — directly applicable to SOC analyst work' },
+                { title: '// Threat Hunting', desc: 'Hypothesis-driven hunting methodology and ATT&CK integration covered in depth' },
+                { title: '// IR Coverage', desc: 'Full incident response lifecycle — preparation through lessons learned, playbook development' },
+                { title: '// Status', desc: 'Certified and current — intermediate level above Security+' }
+              ],
+              stats: [{ n: 'CompTIA', l: 'Issuer' }, { n: 'CS0-003', l: 'Exam' }, { n: '✓', l: 'Certified' }],
+            }
+          },
+          'add-cert.md': {
+            type: 'file',
+            data: {
+              title: '[Add Your Cert Here]',
+              subtitle: 'Update this file with your next certification',
+              tags: [{ label: 'In Progress', cls: 'tag-yellow' }],
+              description: `Placeholder for your next certification — BTL1, GCIH, GCFA, OSCP, or whatever you're working toward.
+
+Update the FILE_SYSTEM data in the source to add your real cert details.`,
+              tech: [],
+              features: [
+                { title: '// Suggested', desc: 'Blue Team Level 1 (BTL1) — practical blue team cert with a strong detection and IR focus' },
+                { title: '// Suggested', desc: 'GIAC GCIH — GIAC Certified Incident Handler, widely respected IR credential' },
+                { title: '// Suggested', desc: 'GIAC GCFA — forensics-focused, pairs well with the CySA+' },
+                { title: '// Edit', desc: 'Open index.html, find this entry in FILE_SYSTEM, and replace with your real data' }
+              ],
+              stats: [{ n: 'TBD', l: 'Cert' }, { n: '?', l: 'Issuer' }, { n: 'Soon', l: 'Status' }],
+            }
+          }
+        }
+      },
+
+      'about.md': {
+        type: 'file',
+        data: {
+          title: 'about.md',
+          subtitle: 'Vincent — Blue Team Security Analyst',
+          tags: [{ label: 'About', cls: 'tag-green' }],
+          description: `handle: vincent
+started: [year you started]
+loc:    Vancouver, BC
+
+I defend systems before attackers get a foothold. My work lives on the blue side — SIEMs, detection rules, threat hunts, and incident response. Understanding how adversaries move is the foundation of everything I build.
+
+Started breaking things to understand them. Now I build the walls.
+
+Currently focused on:
+  → Detection engineering & SIEM tuning
+  → Threat hunting with MITRE ATT&CK
+  → Incident response & digital forensics (DFIR)
+  → Blue team tooling and automation
+
+Languages: Python, Bash/ZSH, PowerShell, SQL, YARA
+Shell:     zsh
+
+When I'm not in a terminal I'm reading threat intelligence reports
+or figuring out why my detection rule has a 40% false positive rate.`,
+          tech: ['Python', 'Bash/ZSH', 'PowerShell', 'SQL', 'YARA', 'SPL'],
+          features: [
+            { title: '// Detection', desc: 'Custom SIEM rules, behavioral baselining, Sigma — 60% false positive reduction in production' },
+            { title: '// Hunting', desc: 'Proactive ATT&CK-mapped hunts — found 11-day undetected persistence on most recent engagement' },
+            { title: '// Response', desc: 'P1 incident response, forensic artifact collection, automated containment playbooks' },
+            { title: '// Tooling', desc: 'Phishing triage pipeline, network anomaly detector, IR runbook automation — built and in use' }
+          ],
+          stats: [{ n: '24/7', l: 'Monitoring' }, { n: '5', l: 'Projects' }, { n: 'Blue', l: 'Team Side' }],
+        }
+      },
+
+    }
+  }
+};
+
+// ============================================================
+// STATE
+// ============================================================
+
+let currentPath = ['~'];
+let cmdHistory  = [];
+let historyIdx  = -1;
+let viewMode    = false;
+let booted      = false;
+let hacked      = false;
+let hackBusy    = false;
+
+const BOOT_LINES = [
+  { text: 'UEFI firmware version 2.8 loading...',           delay: 0,   cls: 'line-muted' },
+  { text: 'Initializing memory controller... OK',           delay: 60,  cls: 'line-muted' },
+  { text: 'Loading kernel modules:',                        delay: 120, cls: 'line-muted' },
+  { text: '  → crypto/sha256  [OK]',                        delay: 160, cls: 'line-muted' },
+  { text: '  → net/ipv4       [OK]',                        delay: 200, cls: 'line-muted' },
+  { text: '  → drivers/input  [OK]',                        delay: 240, cls: 'line-muted' },
+  { text: '  → fs/ext4        [OK]',                        delay: 280, cls: 'line-muted' },
+  { text: 'Starting network services... OK',                delay: 340, cls: 'line-muted' },
+  { text: 'Starting SIEM agent... OK',                      delay: 390, cls: 'line-muted' },
+  { text: 'Connecting to threat intel feeds... OK',         delay: 440, cls: 'line-muted' },
+  { text: 'Starting zsh session for vincent...',            delay: 500, cls: 'line-success' },
+  { text: '',                                               delay: 560, cls: '' },
+  { text: '┌──────────────────────────────────────────────────────────────┐', delay: 600, cls: 'line-blue' },
+  { text: '│ WARNING: Unauthorized access to this system is prohibited.   │', delay: 620, cls: 'line-blue' },
+  { text: '│ All activity is logged and monitored by the SOC.             │', delay: 640, cls: 'line-blue' },
+  { text: '└──────────────────────────────────────────────────────────────┘', delay: 660, cls: 'line-blue' },
+  { text: '',                                               delay: 700, cls: '' },
+];
+
+// ============================================================
+// TERMINAL RENDERING
+// ============================================================
+
+const body   = document.getElementById('terminal-body');
+const input  = document.getElementById('cmd-input');
+const pathEl = document.getElementById('path-display');
+const titleEl= document.getElementById('title-text');
+
+function getPathStr() {
+  return currentPath.length === 1 ? '~' : currentPath.join('/');
+}
+function updatePrompt() {
+  const p = getPathStr();
+  pathEl.textContent  = p;
+  titleEl.textContent = `vincent@blueteam: ${p}`;
+}
+
+function appendLine(text, cls = '') {
+  const div = document.createElement('div');
+  div.className = `line ${cls}`;
+  div.textContent = text;
+  body.appendChild(div);
+  body.scrollTop = body.scrollHeight;
+  return div;
+}
+function appendHTML(html, cls = '') {
+  const div = document.createElement('div');
+  div.className = `line ${cls}`;
+  div.innerHTML = html;
+  body.appendChild(div);
+  body.scrollTop = body.scrollHeight;
+  return div;
+}
+function appendPromptLine(cmd) {
+  const p = getPathStr();
+  appendHTML(
+    `<span style="color:var(--mauve);font-weight:700">vincent</span>` +
+    `<span style="color:var(--overlay1)">@</span>` +
+    `<span style="color:var(--blue)">blueteam</span> ` +
+    `<span style="color:var(--teal)">${p}</span>` +
+    `<span style="color:var(--green)"> $ </span>` +
+    `<span style="color:var(--text)">${escHtml(cmd)}</span>`
+  );
+}
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+const wait = ms => new Promise(r => setTimeout(r, ms));
+
+// ============================================================
+// BOOT
+// ============================================================
+
+function runBoot() {
+  const last = BOOT_LINES[BOOT_LINES.length-1].delay;
+  BOOT_LINES.forEach(({text,delay,cls}) => {
+    setTimeout(() => appendLine(text, cls), delay);
+  });
+  setTimeout(() => showNeofetch(), last + 80);
+}
+
+function showNeofetch() {
+  const artDiv  = document.createElement('div');
+  artDiv.className = 'ascii-art line';
+  artDiv.style.cssText = 'display:inline-block;color:var(--blue);margin-top:8px';
+
+  const infoDiv = document.createElement('div');
+  infoDiv.style.cssText = 'display:inline-block;vertical-align:top;margin-left:24px;margin-top:8px';
+
+  const container = document.createElement('div');
+  container.style.cssText = 'display:flex;margin-bottom:8px';
+  container.appendChild(artDiv);
+  container.appendChild(infoDiv);
+  body.appendChild(container);
+
+  artDiv.textContent = GHOST_ART;
+
+  const info = [
+    ['', `<span style="color:var(--mauve);font-weight:700">vincent</span><span style="color:var(--overlay1)">@</span><span style="color:var(--blue)">blueteam</span>`],
+    ['', '─'.repeat(18)],
+    ['OS',     `<span style="color:var(--green)">VincentOS (Rolling Defense)</span>`],
+    ['Host',   `<span style="color:var(--blue)">SOC Platform</span>`],
+    ['Kernel', `<span style="color:var(--blue)">6.1.0-blueteam-custom</span>`],
+    ['Shell',  `<span style="color:var(--teal)">zsh 5.9</span>`],
+    ['Editor', `<span style="color:var(--teal)">neovim</span>`],
+    ['SIEM',   `<span style="color:var(--mauve)">Splunk Enterprise</span>`],
+    ['Theme',  `<span style="color:var(--mauve)">Catppuccin Mocha</span>`],
+    ['Focus',  `<span style="color:var(--peach)">Blue Team / Detection</span>`],
+    ['', ''],
+    ['', `<span style="color:var(--red)">███</span><span style="color:var(--peach)">███</span><span style="color:var(--yellow)">███</span><span style="color:var(--green)">███</span><span style="color:var(--teal)">███</span><span style="color:var(--blue)">███</span><span style="color:var(--mauve)">███</span><span style="color:var(--pink)">███</span>`],
+  ];
+
+  info.forEach(([label, val]) => {
+    const row = document.createElement('div');
+    row.style.cssText = 'font-size:12px;line-height:1.7';
+    row.innerHTML = label
+      ? `<span style="color:var(--blue);font-weight:600">${label}</span><span style="color:var(--overlay0)">: </span>${val}`
+      : val;
+    infoDiv.appendChild(row);
+  });
+
+  body.scrollTop = body.scrollHeight;
+
+  setTimeout(() => {
+    appendLine('');
+    appendLine('Type `help` for available commands.', 'line-muted');
+    appendLine('');
+    booted = true;
+    input.disabled = false;
+    input.focus();
+    body.scrollTop = body.scrollHeight;
+  }, 300);
+}
+
+// ============================================================
+// FILESYSTEM HELPERS
+// ============================================================
+
+function getDirAtPath(path) {
+  let node = FILE_SYSTEM['~'];
+  if (path.length === 1) return node.children;
+  for (let i = 1; i < path.length; i++) {
+    if (node.children?.[path[i]]) node = node.children[path[i]];
+    else return null;
+  }
+  return node.children || null;
+}
+
+// ============================================================
+// COMMANDS
+// ============================================================
+
+const ALL_CMDS = ['ls','cd','cat','whoami','sudo','clear','help','pwd','uname','exit','echo','man','hack'];
+
+function levenshtein(a,b){
+  const m=a.length,n=b.length,dp=Array.from({length:m+1},(_,i)=>[i,...Array(n).fill(0)]);
+  for(let j=0;j<=n;j++)dp[0][j]=j;
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)dp[i][j]=a[i-1]===b[j-1]?dp[i-1][j-1]:1+Math.min(dp[i-1][j],dp[i][j-1],dp[i-1][j-1]);
+  return dp[m][n];
+}
+function closest(cmd) {
+  let best=null,bd=Infinity;
+  for(const c of ALL_CMDS){const d=levenshtein(cmd,c);if(d<bd){bd=d;best=c;}}
+  return bd<=3?best:null;
+}
+
+function handleCommand(raw) {
+  if (hackBusy) return;
+  const trimmed = raw.trim();
+  if (!trimmed) return;
+  appendPromptLine(trimmed);
+  cmdHistory.unshift(trimmed);
+  historyIdx = -1;
+  const parts = trimmed.split(/\s+/);
+  const cmd   = parts[0].toLowerCase();
+  const args  = parts.slice(1);
+
+  switch(cmd) {
+    case 'help':   cmdHelp();              break;
+    case 'ls':     cmdLs();               break;
+    case 'pwd':    appendLine(getPathStr(),'line-teal'); break;
+    case 'cd':     cmdCd(args[0]);        break;
+    case 'cat':    cmdCat(args[0]);       break;
+    case 'clear':  body.innerHTML='';     break;
+    case 'whoami': appendLine('vincent — blue team analyst', 'line-success'); break;
+    case 'uname':  appendLine('Linux blueteam 6.1.0-blueteam-custom #1 SMP x86_64 GNU/Linux','line-info'); break;
+    case 'echo':   appendLine(args.join(' ')); break;
+    case 'sudo':   appendLine('sudo: permission denied — SOC policy restricts privilege escalation from this shell.','line-error'); break;
+    case 'man':    if(!args[0]){appendLine('What manual page do you want?','line-warning');break;} appendLine(`No manual entry for ${args[0]}. Try 'help'.`,'line-error'); break;
+    case 'exit':   viewMode ? exitViewMode() : appendLine('Cannot exit: this terminal is your life now.','line-warning'); break;
+    case 'hack':   runHack(); break;
+    default: {
+      const s = closest(cmd);
+      if(s) appendHTML(`<span style="color:var(--red)">bash: ${escHtml(cmd)}: command not found.</span> <span style="color:var(--overlay0)">Did you mean </span><span style="color:var(--yellow)">${s}</span><span style="color:var(--overlay0)">?</span>`);
+      else appendLine(`bash: ${cmd}: command not found`,'line-error');
+    }
+  }
+  appendLine('');
+  body.scrollTop = body.scrollHeight;
+}
+
+function cmdHelp() {
+  appendLine('');
+  appendLine('Available commands:','line-info');
+  appendLine('');
+  const cmds = [
+    ['ls','list directory contents'],
+    ['cd [dir]','change directory (cd .. to go up)'],
+    ['cat [file]','open and display a file'],
+    ['pwd','print working directory'],
+    ['whoami','print current user'],
+    ['uname','print system information'],
+    ['sudo [cmd]','run as superuser (lol)'],
+    ['echo [text]','print text to terminal'],
+    ['clear','clear terminal screen'],
+    ['help','show this help text'],
+    ['exit','exit view mode'],
+  ];
+  const table = document.createElement('table');
+  table.className = 'help-table';
+  cmds.forEach(([c,d]) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${c}</td><td>${d}</td>`;
+    table.appendChild(tr);
+  });
+  const wrap = document.createElement('div');
+  wrap.className = 'line';
+  wrap.appendChild(table);
+  body.appendChild(wrap);
+}
+
+function cmdLs() {
+  const dir = getDirAtPath(currentPath);
+  if(!dir){appendLine('ls: cannot access directory','line-error');return;}
+  const entries = Object.keys(dir);
+  if(!entries.length){appendLine('(empty)','line-muted');return;}
+  const wrap = document.createElement('div');
+  wrap.className = 'line ls-grid';
+  entries.forEach(name => {
+    const span = document.createElement('span');
+    const node = dir[name];
+    span.className = node.type==='dir' ? 'ls-dir' : 'ls-file';
+    span.textContent = node.type==='dir' ? name+'/' : name;
+    wrap.appendChild(span);
+  });
+  body.appendChild(wrap);
+}
+
+function cmdCd(target) {
+  if(!target||target==='~'){currentPath=['~'];updatePrompt();return;}
+  const segs = target.split('/').filter(s=>s!=='');
+  let newPath = target.startsWith('~') ? ['~'] : [...currentPath];
+  for(const seg of segs) {
+    if(seg==='~'){newPath=['~'];}
+    else if(seg==='..'){if(newPath.length>1)newPath.pop();else{appendLine('Already at root.','line-warning');return;}}
+    else if(seg==='.'){/* stay */}
+    else {
+      const dir=getDirAtPath(newPath);
+      if(!dir||!dir[seg]){appendLine(`cd: ${seg}: No such file or directory`,'line-error');return;}
+      if(dir[seg].type!=='dir'){appendLine(`cd: ${seg}: Not a directory`,'line-error');return;}
+      newPath.push(seg);
+    }
+  }
+  currentPath=newPath;updatePrompt();
+}
+
+function cmdCat(filename) {
+  if(!filename){appendLine('Usage: cat [filename]','line-warning');return;}
+  const dir=getDirAtPath(currentPath);
+  if(!dir){appendLine(`cat: ${filename}: No such file or directory`,'line-error');return;}
+  const node=dir[filename];
+  if(!node){appendLine(`cat: ${filename}: No such file or directory`,'line-error');return;}
+  if(node.type==='dir'){appendLine(`cat: ${filename}: Is a directory`,'line-error');return;}
+  appendLine(`Opening ${filename}...`,'line-muted');
+  setTimeout(()=>enterViewMode(node.data),300);
+}
+
+// ============================================================
+// SECRET HACK COMMAND
+// ============================================================
+
+async function runHack() {
+  if(hackBusy) return;
+  if(hacked) { await restoreSystem(); return; }
+  hackBusy=true;
+  input.disabled=true;
+
+  const lines = [
+    ['','line-hack-alert'],
+    ['  [!!!] UNAUTHORIZED ACCESS DETECTED — BREACH SIMULATION ACTIVE','line-hack-alert'],
+    ['  ══════════════════════════════════════════════════════════','line-red'],
+    ['',''],
+    ['  Bypassing perimeter firewall...','line-red'],
+  ];
+  for(const[t,c]of lines){appendLine(t,c);await wait(120);}
+
+  appendLine('  [FW]   iptables -F — all rules flushed','line-red'); await wait(280);
+  appendLine('  [PRIV] Escalating privileges via SUID binary...','line-red'); await wait(380);
+  appendLine('  [ROOT] UID=0 achieved — system compromised','line-hack-alert'); await wait(300);
+  appendLine('','');
+
+  // fake network scan
+  appendLine('  Scanning internal network...','line-red'); await wait(200);
+  const hosts=['10.0.0.1','10.0.0.12','10.0.0.53','192.168.1.100','172.16.0.5','192.168.0.254','10.10.10.99'];
+  for(const h of hosts){await wait(160);appendLine(`  [SCAN] ${h} — ports 22,80,443,3389 OPEN`,'line-red');}
+
+  // persistence
+  appendLine('','');
+  appendLine('  Deploying persistence...','line-hack-alert'); await wait(280);
+  appendLine('  [CRON]    backdoor scheduled — /tmp/.sshd_monitor','line-red'); await wait(180);
+  appendLine('  [ROOTKIT] kernel module injected — lkm_hide.ko','line-red'); await wait(200);
+  appendLine('  [C2]      beacon → 185.220.101.42:4444 ESTABLISHED','line-hack-alert'); await wait(300);
+
+  // exfil
+  appendLine('','');
+  appendLine('  Exfiltrating data...','line-red');
+  const files=['/etc/passwd','/etc/shadow','/root/.ssh/id_rsa','credentials.db','network_map.json','/var/log/auth.log'];
+  for(const f of files){await wait(150);appendLine(`  ↑ UPLOAD ${f} → 185.220.101.42 [${Math.floor(Math.random()*900+100)}KB]`,'line-red');}
+
+  await wait(300);
+  appendLine('','');
+  appendLine('  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓  100%  SYSTEM COMPROMISED','line-hack-alert');
+  await wait(500);
+
+  // blue team response
+  appendLine('','');
+  appendLine('  ——— BLUE TEAM AUTO-RESPONSE INITIATED ———','line-muted'); await wait(400);
+  appendLine('  [IDS]   Anomaly score 99/100 — CRITICAL alert fired in Splunk','line-success'); await wait(280);
+  appendLine('  [SIEM]  Correlated: T1059.004 / T1071.001 / T1053.005','line-success'); await wait(280);
+  appendLine('  [EDR]   Process tree quarantined — 6 endpoints isolated','line-success'); await wait(280);
+  appendLine('  [FW]    Blocking 185.220.101.42/32 — null-routed at perimeter','line-success'); await wait(280);
+  appendLine('  [IR]    Incident INC-1337 opened — P1 — on-call paged (PagerDuty)','line-success'); await wait(280);
+  appendLine('  [HUNT]  Threat hunt initiated — searching for persistence IOCs','line-success'); await wait(300);
+  appendLine('','');
+  appendLine('  Attacker dwell time: 47 seconds. Caught.','line-muted');
+  appendLine('  Type `hack` again to restore normal mode.','line-muted');
+  appendLine('','');
+
+  // apply red theme
+  hacked=true;
+  document.body.classList.add('hacked');
+  titleEl.textContent='⚠ BREACH SIMULATION ACTIVE — vincent@blueteam: ~';
+  titleEl.style.color='var(--red)';
+
+  hackBusy=false;
+  input.disabled=false;
+  input.focus();
+}
+
+async function restoreSystem() {
+  hackBusy=true;
+  appendLine('  [RESTORE] Initiating system recovery...','line-success');await wait(250);
+  appendLine('  [OK] Backdoor processes terminated','line-success');await wait(180);
+  appendLine('  [OK] Kernel module unloaded','line-success');await wait(180);
+  appendLine('  [OK] Firewall rules restored from backup','line-success');await wait(180);
+  appendLine('  [OK] C2 beacon killed — connection severed','line-success');await wait(180);
+  appendLine('  [OK] IOCs shared to threat intel platform','line-success');await wait(250);
+  appendLine('  All systems nominal. Good catch, analyst.','line-muted');
+  appendLine('','');
+
+  hacked=false;
+  document.body.classList.remove('hacked');
+  titleEl.textContent=`vincent@blueteam: ${getPathStr()}`;
+  titleEl.style.color='';
+  hackBusy=false;
+  input.disabled=false;
+  input.focus();
+}
+
+// ============================================================
+// VIEW MODE
+// ============================================================
+
+function enterViewMode(data) {
+  viewMode=true;
+  const viewer  =document.getElementById('project-viewer');
+  const content =document.getElementById('project-content');
+  content.innerHTML=buildHTML(data);
+  viewer.style.display='flex';
+  requestAnimationFrame(()=>viewer.classList.add('faded-in'));
+  const term=document.getElementById('terminal-window');
+  term.classList.remove('fullscreen','minimized','overlay');
+  term.classList.add('hidden');
+  termVisible=false;
+  input.disabled=true;input.value='';input.blur();
+  document.getElementById('terminal-fab').style.display='flex';
+}
+
+function exitViewMode() {
+  viewMode=false;
+  const viewer=document.getElementById('project-viewer');
+  viewer.classList.remove('faded-in');
+  setTimeout(()=>{viewer.style.display='none';},400);
+  const term=document.getElementById('terminal-window');
+  term.classList.remove('hidden','minimized','overlay');
+  term.classList.add('fullscreen');
+  termVisible=true;
+  input.disabled=false;
+  document.getElementById('terminal-fab').style.display='none';
+  appendLine('Exited view mode.','line-muted');
+  appendLine('');
+  input.focus();
+}
+
+function buildHTML(d) {
+  const tags  = d.tags.map(t=>`<span class="project-tag ${t.cls}">${t.label}</span>`).join('');
+  const feats = d.features.map(f=>`<div class="feature-card"><h4>${f.title}</h4><p>${f.desc}</p></div>`).join('');
+  const tech  = d.tech.map(t=>`<span class="tech-pill">${t}</span>`).join('');
+  const stats = d.stats.map(s=>`<div class="stat"><span class="stat-number">${s.n}</span><span class="stat-label">${s.l}</span></div>`).join('');
+
+  return `
+    <div class="project-header">
+      <div>${tags}</div>
+      <h1 class="project-title">${d.title}</h1>
+      <p class="project-subtitle">${d.subtitle}</p>
+      <div class="exit-hint">
+        Press <kbd>\`</kbd> or click <kbd>&gt;_ terminal</kbd> to toggle terminal &nbsp;·&nbsp; type <kbd>exit</kbd> to go back
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="section-label">// overview</div>
+    <div class="project-desc" style="white-space:pre-line">${escHtml(d.description)}</div>
+    ${d.stats.length?`<div class="stat-row">${stats}</div><div class="divider"></div>`:''}
+    ${d.tech.length?`<div class="section-label">// tech stack</div><div class="tech-stack">${tech}</div>`:''}
+    ${d.features.length?`<div class="section-label">// features</div><div class="feature-grid">${feats}</div>`:''}
+    <div class="divider" style="margin-top:40px"></div>
+    <div style="display:flex;align-items:center;gap:12px;padding:16px 0 8px;color:var(--overlay0);font-size:11px;letter-spacing:0.08em">
+      <span>── EOF</span>
+      <span style="flex:1;height:1px;background:var(--surface0);display:inline-block"></span>
+      <span style="color:var(--surface2)">type <span style="color:var(--overlay0)">exit</span> to go back</span>
+    </div>`;
+}
+
+// ============================================================
+// TERMINAL CONTROLS
+// ============================================================
+
+function closeTerm() {
+  const t=document.getElementById('terminal-window');
+  t.classList.add('hidden');termVisible=false;
+  input.disabled=true;input.value='';input.blur();
+}
+function minimizeTerm() { if(viewMode) toggleTerminalFab(); }
+function maximizeTerm() {
+  const t=document.getElementById('terminal-window');
+  t.classList.remove('minimized','hidden');t.classList.add('fullscreen');
+  termVisible=true;input.disabled=false;
+  if(viewMode)exitViewMode();input.focus();
+}
+
+let termVisible=true;
+function toggleTerminalFab() {
+  const term=document.getElementById('terminal-window');
+  termVisible=!termVisible;
+  if(termVisible) {
+    input.disabled=false;
+    term.classList.remove('fullscreen','minimized');
+    term.classList.add('overlay');
+    void term.offsetWidth;
+    term.classList.remove('hidden');
+    setTimeout(()=>{
+      body.scrollTop=body.scrollHeight;
+      if(body.innerHTML===''){currentPath=['~'];updatePrompt();runBoot();}
+      else input.focus();
+    },50);
+  } else {
+    input.disabled=true;input.value='';input.blur();
+    term.classList.add('hidden');
+  }
+}
+
+// ============================================================
+// INPUT HANDLING
+// ============================================================
+
+input.addEventListener('keydown', e => {
+  if(!termVisible||input.disabled){e.preventDefault();return;}
+  if(e.key==='Enter'){const v=input.value;input.value='';handleCommand(v);}
+  else if(e.key==='ArrowUp'){e.preventDefault();if(historyIdx<cmdHistory.length-1){historyIdx++;input.value=cmdHistory[historyIdx];setTimeout(()=>{input.selectionStart=input.selectionEnd=input.value.length;},0);}}
+  else if(e.key==='ArrowDown'){e.preventDefault();if(historyIdx>0){historyIdx--;input.value=cmdHistory[historyIdx];}else{historyIdx=-1;input.value='';}}
+  else if(e.key==='Tab'){e.preventDefault();autocomplete();}
+  else if(e.key==='l'&&e.ctrlKey){e.preventDefault();body.innerHTML='';}
+  else if(e.key==='c'&&e.ctrlKey){e.preventDefault();appendPromptLine(input.value+'^C');input.value='';appendLine('');}
+});
+
+function autocomplete() {
+  const val=input.value,parts=val.trim().split(/\s+/);
+  if(parts.length===1){
+    const partial=parts[0];
+    const matches=ALL_CMDS.filter(c=>c.startsWith(partial));
+    if(matches.length===1)input.value=matches[0]+' ';
+    else if(matches.length>1){appendPromptLine(val);appendLine(matches.join('  '),'line-muted');}
+  } else if(parts.length===2){
+    const partial=parts[1],dir=getDirAtPath(currentPath);
+    if(!dir)return;
+    const matches=Object.keys(dir).filter(k=>k.startsWith(partial));
+    if(matches.length===1)input.value=parts[0]+' '+matches[0];
+    else if(matches.length>1){appendPromptLine(val);appendLine(matches.join('  '),'line-muted');}
+  }
+}
+
+document.addEventListener('click',()=>{if(termVisible&&!input.disabled)input.focus();});
+document.addEventListener('keydown',e=>{
+  if(e.key==='`'&&viewMode){e.preventDefault();toggleTerminalFab();return;}
+  if(!termVisible)return;
+  if(e.target!==input&&!e.ctrlKey&&!e.metaKey&&e.key.length===1)input.focus();
+});
+
+// ============================================================
+// INIT
+// ============================================================
+runBoot();
+</script>
+</body>
+</html>
