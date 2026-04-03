@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vincent — void://blueteam</title>
+<title>Vincent Suen — void://security</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -31,24 +31,23 @@
     --red: #f38ba8;
     --mauve: #cba6f7;
     --pink: #f5c2e7;
-    --flamingo: #f2cdcd;
   }
 
-  /* HACK MODE overrides */
   body.hacked {
-    --blue: #ff4444;
-    --sapphire: #ff3333;
+    --blue: #ff4040;
+    --sapphire: #ff2222;
     --sky: #ff5555;
-    --teal: #ff4444;
-    --green: #ff6666;
-    --mauve: #ff3333;
+    --teal: #ff3333;
+    --green: #ff5555;
+    --mauve: #ff2222;
     --text: #ffcccc;
     --subtext0: #ff9999;
     --subtext1: #ffbbbb;
-    --lavender: #ff4444;
+    --lavender: #ff3333;
+    --peach: #ff8800;
   }
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  *,*::before,*::after { margin:0; padding:0; box-sizing:border-box; }
 
   body {
     font-family: 'JetBrains Mono', monospace;
@@ -58,351 +57,237 @@
     width: 100vw;
     overflow: hidden;
     position: relative;
-    transition: color 0.4s;
+    transition: color 0.5s;
   }
 
   /* WALLPAPER */
   #wallpaper {
-    position: fixed;
-    inset: 0;
+    position: fixed; inset: 0; z-index: 0;
     background:
       radial-gradient(ellipse at 20% 50%, rgba(137,180,250,0.08) 0%, transparent 50%),
       radial-gradient(ellipse at 80% 20%, rgba(203,166,247,0.08) 0%, transparent 50%),
-      radial-gradient(ellipse at 60% 80%, rgba(166,227,161,0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 60% 80%, rgba(148,226,213,0.06) 0%, transparent 50%),
       linear-gradient(135deg, #0a0a0f 0%, #11111b 40%, #0d0d1a 100%);
-    z-index: 0;
-    transition: background 0.6s;
+    transition: background 0.8s;
   }
   body.hacked #wallpaper {
     background:
-      radial-gradient(ellipse at 20% 50%, rgba(255,50,50,0.12) 0%, transparent 50%),
-      radial-gradient(ellipse at 80% 20%, rgba(200,0,0,0.10) 0%, transparent 50%),
+      radial-gradient(ellipse at 20% 50%, rgba(255,40,40,0.14) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(180,0,0,0.10) 0%, transparent 50%),
       radial-gradient(ellipse at 60% 80%, rgba(255,0,0,0.08) 0%, transparent 50%),
       linear-gradient(135deg, #0f0000 0%, #1a0000 40%, #0d0005 100%);
   }
-
   #wallpaper::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-image:
-      repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.008) 2px, rgba(255,255,255,0.008) 4px);
-    pointer-events: none;
+    content:''; position:absolute; inset:0; pointer-events:none;
+    background-image: repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,255,255,0.008) 2px,rgba(255,255,255,0.008) 4px);
   }
   #wallpaper::after {
-    content: '';
-    position: absolute;
-    inset: 0;
+    content:''; position:absolute; inset:0;
     background-image: radial-gradient(circle, rgba(137,180,250,0.15) 1px, transparent 1px);
-    background-size: 40px 40px;
-    opacity: 0.3;
-    transition: opacity 0.4s;
+    background-size: 40px 40px; opacity: 0.3; transition: opacity 0.5s;
   }
   body.hacked #wallpaper::after {
-    background-image: radial-gradient(circle, rgba(255,50,50,0.2) 1px, transparent 1px);
-    opacity: 0.4;
+    background-image: radial-gradient(circle, rgba(255,50,50,0.22) 1px, transparent 1px);
+    opacity: 0.45;
+  }
+
+  /* SCANLINE */
+  @keyframes scanline { 0%{transform:translateY(-100%)} 100%{transform:translateY(100vh)} }
+  .scanline {
+    position:fixed; top:0; left:0; right:0; height:2px; pointer-events:none; z-index:200;
+    background: linear-gradient(transparent, rgba(148,226,213,0.07), transparent);
+    animation: scanline 8s linear infinite; transition: background 0.5s;
+  }
+  body.hacked .scanline {
+    background: linear-gradient(transparent, rgba(255,50,50,0.18), transparent);
+    animation: scanline 1.8s linear infinite;
   }
 
   /* TERMINAL WINDOW */
   #terminal-window {
-    position: fixed;
-    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 100;
-    display: flex;
-    flex-direction: column;
-    border-radius: 12px;
+    position:fixed; z-index:100;
+    display:flex; flex-direction:column;
+    border-radius:12px;
     border: 1px solid rgba(255,255,255,0.08);
-    box-shadow:
-      0 0 0 1px rgba(137,180,250,0.05),
-      0 25px 60px rgba(0,0,0,0.8),
-      0 0 80px rgba(137,180,250,0.05),
-      inset 0 1px 0 rgba(255,255,255,0.05);
-    background: rgba(30,30,46,0.92);
+    box-shadow: 0 0 0 1px rgba(137,180,250,0.05), 0 25px 60px rgba(0,0,0,0.8), 0 0 80px rgba(137,180,250,0.05), inset 0 1px 0 rgba(255,255,255,0.05);
+    background: rgba(30,30,46,0.93);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     overflow: hidden;
+    transition: all 0.5s cubic-bezier(0.4,0,0.2,1), border-color 0.4s, box-shadow 0.4s;
   }
   body.hacked #terminal-window {
-    border-color: rgba(255,50,50,0.3);
-    box-shadow:
-      0 0 0 1px rgba(255,50,50,0.1),
-      0 25px 60px rgba(0,0,0,0.8),
-      0 0 80px rgba(255,0,0,0.15),
-      inset 0 1px 0 rgba(255,50,50,0.1);
+    border-color: rgba(255,50,50,0.35);
+    box-shadow: 0 0 0 1px rgba(255,50,50,0.1), 0 25px 60px rgba(0,0,0,0.85), 0 0 100px rgba(255,0,0,0.18), inset 0 1px 0 rgba(255,50,50,0.08);
   }
-
-  #terminal-window.fullscreen { inset: 20px; max-height: calc(100vh - 40px); }
-  #terminal-window.minimized { bottom: 20px; left: 20px; width: 420px; height: 280px; inset: unset; }
-
+  #terminal-window.fullscreen { inset:20px; max-height:calc(100vh - 40px); }
+  #terminal-window.minimized  { bottom:20px; left:20px; width:420px; height:280px; inset:unset; }
   #terminal-window.overlay {
-    position: fixed;
-    bottom: 24px;
-    left: 50%;
-    top: unset;
-    width: min(720px, calc(100vw - 48px));
-    height: 360px;
-    transform: translateX(-50%);
-    z-index: 150;
-    display: flex;
-    flex-direction: column;
-    animation: slideUp 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    position:fixed; bottom:24px; left:50%; top:unset;
+    width:min(760px,calc(100vw - 48px)); height:380px;
+    transform:translateX(-50%); z-index:150;
+    display:flex; flex-direction:column;
+    animation:slideUp 0.25s cubic-bezier(0.4,0,0.2,1) forwards;
   }
   @keyframes slideUp {
-    from { opacity: 0; transform: translateX(-50%) translateY(16px); }
-    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+    from{opacity:0;transform:translateX(-50%) translateY(16px)}
+    to{opacity:1;transform:translateX(-50%) translateY(0)}
   }
-
   #terminal-window.hidden {
-    opacity: 0 !important;
-    pointer-events: none !important;
-    transform: translateX(-50%) translateY(8px) scale(0.97) !important;
+    opacity:0 !important; pointer-events:none !important;
+    transform:translateX(-50%) translateY(8px) scale(0.97) !important;
   }
-  #terminal-window.fullscreen .dot { opacity: 0.3; pointer-events: none; cursor: default; }
+  #terminal-window.fullscreen .dot { opacity:0.3; pointer-events:none; cursor:default; }
 
   #title-bar {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 16px;
-    background: rgba(17,17,27,0.6);
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-    flex-shrink: 0;
-    transition: background 0.4s;
+    display:flex; align-items:center; gap:8px;
+    padding:10px 16px;
+    background:rgba(17,17,27,0.65);
+    border-bottom:1px solid rgba(255,255,255,0.05);
+    flex-shrink:0; transition:background 0.4s, border-color 0.4s;
   }
-  body.hacked #title-bar { background: rgba(30,0,0,0.7); border-bottom-color: rgba(255,50,50,0.2); }
+  body.hacked #title-bar { background:rgba(30,0,0,0.75); border-bottom-color:rgba(255,50,50,0.2); }
 
-  .dot { width: 12px; height: 12px; border-radius: 50%; cursor: pointer; transition: opacity 0.2s; }
-  .dot:hover { opacity: 0.7; }
-  .dot-red    { background: #ff5f57; }
-  .dot-yellow { background: #ffbd2e; }
-  .dot-green  { background: #28c840; }
+  .dot { width:12px; height:12px; border-radius:50%; cursor:pointer; transition:opacity 0.2s; }
+  .dot:hover { opacity:0.7; }
+  .dot-red    { background:#ff5f57; }
+  .dot-yellow { background:#ffbd2e; }
+  .dot-green  { background:#28c840; }
 
-  #title-text {
-    margin-left: 12px;
-    font-size: 12px;
-    color: var(--overlay0);
-    font-weight: 500;
-    letter-spacing: 0.05em;
-  }
+  #title-text { margin-left:12px; font-size:12px; color:var(--overlay0); font-weight:500; letter-spacing:0.05em; transition:color 0.4s; }
 
   #terminal-body {
-    flex: 1 1 0;
-    min-height: 0;
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding: 16px;
-    font-size: 13px;
-    line-height: 1.6;
-    scrollbar-width: thin;
-    scrollbar-color: var(--surface1) transparent;
+    flex:1 1 0; min-height:0; overflow-y:auto; overflow-x:hidden;
+    padding:16px; font-size:13px; line-height:1.6;
+    scrollbar-width:thin; scrollbar-color:var(--surface1) transparent;
   }
-  #terminal-body::-webkit-scrollbar { width: 4px; }
-  #terminal-body::-webkit-scrollbar-thumb { background: var(--surface1); border-radius: 2px; }
+  #terminal-body::-webkit-scrollbar { width:4px; }
+  #terminal-body::-webkit-scrollbar-thumb { background:var(--surface1); border-radius:2px; }
 
-  .line { margin-bottom: 2px; white-space: pre-wrap; word-break: break-all; }
-  .line-success { color: var(--green); }
-  .line-error   { color: var(--red); }
-  .line-warning { color: var(--yellow); }
-  .line-info    { color: var(--blue); }
-  .line-muted   { color: var(--overlay0); }
-  .line-mauve   { color: var(--mauve); }
-  .line-peach   { color: var(--peach); }
-  .line-sky     { color: var(--sky); }
-  .line-teal    { color: var(--teal); }
-  .line-red     { color: var(--red); }
-  .line-prompt  { color: var(--text); }
+  .line { margin-bottom:2px; white-space:pre-wrap; word-break:break-all; }
+  .line-success { color:var(--green); }
+  .line-error   { color:var(--red); }
+  .line-warning { color:var(--yellow); }
+  .line-info    { color:var(--blue); }
+  .line-muted   { color:var(--overlay0); }
+  .line-mauve   { color:var(--mauve); }
+  .line-peach   { color:var(--peach); }
+  .line-teal    { color:var(--teal); }
+  .line-red     { color:var(--red); }
+  .line-blue    { color:var(--blue); }
+  .line-hack    { color:#ff2222; font-weight:600; }
 
-  /* HACK-specific line colours */
-  .line-hack-alert { color: #ff2222; font-weight: 600; }
-  .line-hack-ok    { color: #ff6666; }
-  .line-hack-sys   { color: #ffaa44; }
-
-  #input-area {
-    display: flex;
-    align-items: center;
-    padding: 8px 16px 14px;
-    gap: 0;
-    flex-shrink: 0;
-  }
-  #prompt-label {
-    color: var(--mauve);
-    font-weight: 600;
-    font-size: 13px;
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
+  #input-area { display:flex; align-items:center; padding:8px 16px 14px; flex-shrink:0; }
+  #prompt-label { color:var(--mauve); font-weight:600; font-size:13px; white-space:nowrap; flex-shrink:0; }
   #cmd-input {
-    background: transparent;
-    border: none;
-    outline: none;
-    color: var(--text);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 13px;
-    flex: 1;
-    caret-color: var(--green);
-    margin-left: 8px;
+    background:transparent; border:none; outline:none;
+    color:var(--text); font-family:'JetBrains Mono',monospace; font-size:13px;
+    flex:1; caret-color:var(--green); margin-left:8px; transition:caret-color 0.4s;
   }
-  body.hacked #cmd-input { caret-color: #ff4444; }
-
-  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
-  .cursor { display:inline-block;width:8px;height:14px;background:var(--green);animation:blink 1s step-end infinite;vertical-align:middle;margin-left:1px; }
+  body.hacked #cmd-input { caret-color:#ff3333; }
 
   /* PROJECT VIEWER */
   #project-viewer {
-    position: fixed;
-    inset: 0;
-    z-index: 50;
-    display: none;
-    padding: 40px;
-    overflow-y: auto;
-    background: rgba(11,11,17,0.7);
-    backdrop-filter: blur(4px);
-    opacity: 0;
-    transition: opacity 0.4s ease;
+    position:fixed; inset:0; z-index:50; display:none;
+    padding:40px; overflow-y:auto;
+    background:rgba(11,11,17,0.72); backdrop-filter:blur(4px);
+    opacity:0; transition:opacity 0.4s ease;
   }
-  #project-viewer.visible { display: flex; align-items: flex-start; justify-content: center; }
-  #project-viewer.faded-in { opacity: 1; }
-  #project-content { max-width: 800px; width: 100%; padding-bottom: 160px; }
+  #project-viewer.visible { display:flex; align-items:flex-start; justify-content:center; }
+  #project-viewer.faded-in { opacity:1; }
+  #project-content { max-width:840px; width:100%; padding-bottom:180px; }
 
-  .project-header { margin-bottom: 32px; }
+  .project-header { margin-bottom:32px; }
   .project-tag {
-    display: inline-block;
-    padding: 3px 10px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    margin-bottom: 16px;
-    margin-right: 8px;
+    display:inline-block; padding:3px 10px; border-radius:4px;
+    font-size:11px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase;
+    margin-bottom:16px; margin-right:8px;
   }
-  .tag-red    { background: rgba(243,139,168,0.15); color: var(--red);    border: 1px solid rgba(243,139,168,0.3); }
-  .tag-blue   { background: rgba(137,180,250,0.15); color: var(--blue);   border: 1px solid rgba(137,180,250,0.3); }
-  .tag-green  { background: rgba(166,227,161,0.15); color: var(--green);  border: 1px solid rgba(166,227,161,0.3); }
-  .tag-mauve  { background: rgba(203,166,247,0.15); color: var(--mauve);  border: 1px solid rgba(203,166,247,0.3); }
-  .tag-peach  { background: rgba(250,179,135,0.15); color: var(--peach);  border: 1px solid rgba(250,179,135,0.3); }
-  .tag-teal   { background: rgba(148,226,213,0.15); color: var(--teal);   border: 1px solid rgba(148,226,213,0.3); }
-  .tag-yellow { background: rgba(249,226,175,0.15); color: var(--yellow); border: 1px solid rgba(249,226,175,0.3); }
+  .tag-red    { background:rgba(243,139,168,0.15); color:var(--red);    border:1px solid rgba(243,139,168,0.3); }
+  .tag-blue   { background:rgba(137,180,250,0.15); color:var(--blue);   border:1px solid rgba(137,180,250,0.3); }
+  .tag-green  { background:rgba(166,227,161,0.15); color:var(--green);  border:1px solid rgba(166,227,161,0.3); }
+  .tag-mauve  { background:rgba(203,166,247,0.15); color:var(--mauve);  border:1px solid rgba(203,166,247,0.3); }
+  .tag-peach  { background:rgba(250,179,135,0.15); color:var(--peach);  border:1px solid rgba(250,179,135,0.3); }
+  .tag-teal   { background:rgba(148,226,213,0.15); color:var(--teal);   border:1px solid rgba(148,226,213,0.3); }
+  .tag-yellow { background:rgba(249,226,175,0.15); color:var(--yellow); border:1px solid rgba(249,226,175,0.3); }
 
-  .project-title    { font-size: 42px; font-weight: 700; color: var(--text); line-height: 1.1; margin-bottom: 8px; letter-spacing: -0.02em; }
-  .project-subtitle { font-size: 15px; color: var(--subtext0); margin-bottom: 32px; line-height: 1.7; }
+  .project-title    { font-size:42px; font-weight:700; color:var(--text); line-height:1.1; margin-bottom:8px; letter-spacing:-0.02em; }
+  .project-subtitle { font-size:15px; color:var(--subtext0); margin-bottom:32px; line-height:1.7; }
+  .divider { height:1px; background:linear-gradient(90deg,var(--surface1),transparent); margin:24px 0; }
+  .section-label { font-size:11px; text-transform:uppercase; letter-spacing:0.15em; color:var(--overlay0); margin-bottom:12px; font-weight:600; }
+  .project-desc  { font-size:14px; color:var(--subtext1); line-height:1.85; margin-bottom:24px; }
 
-  .divider { height: 1px; background: linear-gradient(90deg, var(--surface1), transparent); margin: 24px 0; }
-
-  .section-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--overlay0); margin-bottom: 12px; font-weight: 600; }
-  .project-desc  { font-size: 14px; color: var(--subtext1); line-height: 1.8; margin-bottom: 24px; }
-
-  .tech-stack { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 32px; }
+  .tech-stack { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:28px; }
   .tech-pill {
-    padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 500;
-    background: var(--surface0); color: var(--subtext1); border: 1px solid var(--surface1);
-    transition: all 0.2s;
+    padding:5px 14px; border-radius:20px; font-size:12px; font-weight:500;
+    background:var(--surface0); color:var(--subtext1); border:1px solid var(--surface1);
+    transition:all 0.2s;
   }
-  .tech-pill:hover { background: var(--surface1); color: var(--text); border-color: var(--overlay0); }
+  .tech-pill:hover { background:var(--surface1); color:var(--text); border-color:var(--overlay0); }
 
-  .feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 32px; }
-  .feature-card { background: var(--surface0); border: 1px solid var(--surface1); border-radius: 8px; padding: 16px; }
-  .feature-card h4 { font-size: 12px; color: var(--mauve); margin-bottom: 6px; font-weight: 600; }
-  .feature-card p  { font-size: 12px; color: var(--subtext0); line-height: 1.6; }
+  .feature-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:28px; }
+  .feature-card { background:var(--surface0); border:1px solid var(--surface1); border-radius:8px; padding:16px; transition:border-color 0.2s; }
+  .feature-card:hover { border-color:var(--overlay0); }
+  .feature-card h4 { font-size:12px; color:var(--mauve); margin-bottom:6px; font-weight:600; }
+  .feature-card p  { font-size:12px; color:var(--subtext0); line-height:1.65; }
 
-  .stat-row { display: flex; gap: 24px; margin-bottom: 24px; }
-  .stat { text-align: center; }
-  .stat-number { font-size: 28px; font-weight: 700; color: var(--blue); display: block; }
-  .stat-label  { font-size: 11px; color: var(--overlay0); text-transform: uppercase; letter-spacing: 0.1em; }
+  .stat-row { display:flex; gap:28px; margin-bottom:24px; flex-wrap:wrap; }
+  .stat { text-align:center; }
+  .stat-number { font-size:26px; font-weight:700; color:var(--blue); display:block; line-height:1.2; }
+  .stat-label  { font-size:11px; color:var(--overlay0); text-transform:uppercase; letter-spacing:0.1em; }
 
-  .exit-hint { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--overlay0); margin-top: 8px; }
-  .exit-hint kbd {
-    background: var(--surface0); border: 1px solid var(--surface1);
-    padding: 2px 8px; border-radius: 4px; color: var(--subtext0);
-    font-family: 'JetBrains Mono', monospace; font-size: 11px;
-  }
+  .exit-hint { display:flex; align-items:center; gap:8px; font-size:11px; color:var(--overlay0); margin-top:8px; flex-wrap:wrap; }
+  .exit-hint kbd { background:var(--surface0); border:1px solid var(--surface1); padding:2px 8px; border-radius:4px; color:var(--subtext0); font-family:'JetBrains Mono',monospace; font-size:11px; }
 
-  /* SKILL BARS */
-  .skill-row { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
-  .skill-name { width: 160px; font-size: 12px; color: var(--subtext1); flex-shrink: 0; }
-  .skill-bar  { flex: 1; height: 3px; background: var(--surface0); border-radius: 2px; overflow: hidden; }
-  .skill-fill { height: 100%; background: var(--blue); border-radius: 2px; transition: width 0.8s ease; }
-  .skill-pct  { width: 36px; text-align: right; font-size: 11px; color: var(--overlay0); }
+  .ls-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:4px 0; }
+  .ls-dir  { color:var(--blue); font-weight:600; }
+  .ls-file { color:var(--text); }
 
-  /* SCANLINE */
-  @keyframes scanline { 0% { transform: translateY(-100%); } 100% { transform: translateY(100vh); } }
-  .scanline {
-    position: fixed; top: 0; left: 0; right: 0; height: 2px;
-    background: linear-gradient(transparent, rgba(166,227,161,0.06), transparent);
-    animation: scanline 8s linear infinite;
-    pointer-events: none; z-index: 200;
-    transition: background 0.5s;
-  }
-  body.hacked .scanline {
-    background: linear-gradient(transparent, rgba(255,50,50,0.15), transparent);
-    animation: scanline 2s linear infinite;
-  }
-
-  /* HACK GLITCH */
-  @keyframes glitch {
-    0%   { clip-path: inset(0 0 98% 0); transform: translateX(-6px) skewX(-4deg); }
-    15%  { clip-path: inset(15% 0 70% 0); transform: translateX(6px); }
-    30%  { clip-path: inset(50% 0 30% 0); transform: translateX(-4px); }
-    50%  { clip-path: inset(75% 0 5% 0);  transform: translateX(5px) skewX(3deg); }
-    100% { clip-path: inset(0); transform: none; }
-  }
-  @keyframes flicker {
-    0%,100%{opacity:1} 88%{opacity:1} 89%{opacity:0.2} 90%{opacity:1} 95%{opacity:0.6} 96%{opacity:1}
-  }
-  body.hacked { animation: flicker 4s infinite; }
-
-  /* LS GRID */
-  .ls-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 4px; }
-  .ls-dir  { color: var(--blue); font-weight: 600; }
-  .ls-file { color: var(--text); }
-
-  /* HELP TABLE */
-  .help-table { width: 100%; border-collapse: collapse; }
-  .help-table td { padding: 3px 12px 3px 0; font-size: 13px; }
-  .help-table td:first-child { color: var(--green); min-width: 160px; }
-  .help-table td:last-child  { color: var(--subtext0); }
-
-  /* ASCII */
-  .ascii-art { color: var(--blue); font-size: 11px; line-height: 1.2; white-space: pre; }
+  .help-table { width:100%; border-collapse:collapse; }
+  .help-table td { padding:3px 12px 3px 0; font-size:13px; }
+  .help-table td:first-child { color:var(--green); min-width:180px; }
+  .help-table td:last-child  { color:var(--subtext0); }
 
   /* FAB */
   #terminal-fab {
-    display: none;
-    position: fixed;
-    bottom: 28px;
-    right: 28px;
-    z-index: 200;
-    align-items: center;
-    gap: 10px;
-    background: rgba(30,30,46,0.95);
-    border: 1px solid rgba(203,166,247,0.35);
-    border-radius: 40px;
-    padding: 10px 18px 10px 14px;
-    cursor: pointer;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.6), 0 0 0 1px rgba(203,166,247,0.1), 0 0 20px rgba(203,166,247,0.12);
-    backdrop-filter: blur(12px);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--mauve);
-    letter-spacing: 0.04em;
-    transition: all 0.2s ease;
-    animation: fabPop 0.3s cubic-bezier(0.175,0.885,0.32,1.275) forwards;
+    display:none; position:fixed; bottom:28px; right:28px; z-index:200;
+    align-items:center; gap:10px;
+    background:rgba(30,30,46,0.95); border:1px solid rgba(203,166,247,0.35); border-radius:40px;
+    padding:10px 18px 10px 14px; cursor:pointer;
+    box-shadow:0 4px 24px rgba(0,0,0,0.6),0 0 20px rgba(203,166,247,0.12);
+    backdrop-filter:blur(12px); font-family:'JetBrains Mono',monospace;
+    font-size:12px; font-weight:600; color:var(--mauve); letter-spacing:0.04em;
+    transition:all 0.2s ease; animation:fabPop 0.3s cubic-bezier(0.175,0.885,0.32,1.275) forwards;
   }
   @keyframes fabPop { from{opacity:0;transform:scale(0.8) translateY(8px)} to{opacity:1;transform:scale(1) translateY(0)} }
-  #terminal-fab:hover { background: rgba(40,40,60,0.98); border-color: rgba(203,166,247,0.6); transform: translateY(-1px); }
-  body.hacked #terminal-fab { border-color: rgba(255,50,50,0.5); color: #ff4444; box-shadow: 0 4px 24px rgba(0,0,0,0.6), 0 0 20px rgba(255,0,0,0.2); }
+  #terminal-fab:hover { background:rgba(40,40,60,0.98); border-color:rgba(203,166,247,0.6); transform:translateY(-1px); }
+  body.hacked #terminal-fab { border-color:rgba(255,50,50,0.5); color:#ff4444; box-shadow:0 4px 24px rgba(0,0,0,0.6),0 0 24px rgba(255,0,0,0.22); }
 
-  #project-viewer::-webkit-scrollbar { width: 4px; }
-  #project-viewer::-webkit-scrollbar-thumb { background: var(--surface1); border-radius: 2px; }
+  .ascii-art { color:var(--blue); font-size:11px; line-height:1.2; white-space:pre; }
 
-  @media (max-width: 640px) {
-    #terminal-window.fullscreen { inset: 0; border-radius: 0; }
-    #project-viewer { padding: 20px; }
-    .project-title { font-size: 28px; }
-    .feature-grid  { grid-template-columns: 1fr; }
-    #terminal-fab  { bottom: 20px; right: 20px; }
-    #terminal-window.overlay { width: calc(100vw - 32px); height: 280px; bottom: 16px; }
+  /* GLITCH / FLICKER for hack mode */
+  @keyframes glitch {
+    0%  {clip-path:inset(0 0 97% 0);transform:translateX(-7px) skewX(-5deg)}
+    12% {clip-path:inset(10% 0 75% 0);transform:translateX(7px)}
+    25% {clip-path:inset(40% 0 40% 0);transform:translateX(-4px)}
+    50% {clip-path:inset(72% 0 8% 0);transform:translateX(6px) skewX(3deg)}
+    100%{clip-path:inset(0);transform:none}
+  }
+  @keyframes flicker {
+    0%,100%{opacity:1} 87%{opacity:1} 88%{opacity:0.15} 89%{opacity:1} 93%{opacity:0.55} 94%{opacity:1}
+  }
+  body.hacked { animation:flicker 5s infinite; }
+
+  #project-viewer::-webkit-scrollbar { width:4px; }
+  #project-viewer::-webkit-scrollbar-thumb { background:var(--surface1); border-radius:2px; }
+
+  @media(max-width:640px){
+    #terminal-window.fullscreen { inset:0; border-radius:0; }
+    #project-viewer { padding:20px; }
+    .project-title { font-size:26px; }
+    .feature-grid  { grid-template-columns:1fr; }
+    #terminal-fab  { bottom:20px; right:20px; }
+    #terminal-window.overlay { width:calc(100vw - 24px); height:300px; bottom:12px; }
   }
 </style>
 </head>
@@ -420,12 +305,12 @@
     <div class="dot dot-red"    onclick="closeTerm()"></div>
     <div class="dot dot-yellow" onclick="minimizeTerm()"></div>
     <div class="dot dot-green"  onclick="maximizeTerm()"></div>
-    <span id="title-text">vincent@blueteam: ~</span>
+    <span id="title-text">vonton@cyber: ~</span>
   </div>
   <div id="terminal-body"></div>
   <div id="input-area">
     <span id="prompt-label">
-      <span style="color:var(--mauve);font-weight:700">vincent</span><span style="color:var(--overlay1)">@</span><span style="color:var(--blue)">blueteam</span> <span id="path-display" style="color:var(--teal)">~</span><span style="color:var(--green)"> $ </span>
+      <span style="color:var(--mauve);font-weight:700">vonton</span><span style="color:var(--overlay1)">@</span><span style="color:var(--blue)">cyber</span> <span id="path-display" style="color:var(--teal)">~</span><span style="color:var(--green)"> $ </span>
     </span>
     <input type="text" id="cmd-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" disabled>
   </div>
@@ -439,347 +324,550 @@
 
 <script>
 // ============================================================
-// DATA
+// FILE SYSTEM DATA
 // ============================================================
 
-const GHOST_ART = `
-    ██████
-   ██    ██
-  ██  ██  ██
-  ██  ██  ██
-   ██████████
-    █ ████ █
-    █      █`;
+// ASCII arts — randomly picked on each boot
+const PANDA_ART = `
+   /\\_____/\\        
+  /  o   o  \\       
+ ( ==  ^  == )      
+  )         (       
+ (           )      
+ ((__) _ (__))    
+    `;
+
+const ARTS = [PANDA_ART];
+const GHOST_ART = ARTS[Math.floor(Math.random() * ARTS.length)];
 
 const FILE_SYSTEM = {
   '~': {
     type: 'dir',
     children: {
 
+      // ── PROJECTS ────────────────────────────────────────────
       'projects': {
         type: 'dir',
         children: {
 
-          'honeypot-network': {
+          'cve-vuln-exploiter': {
             type: 'file',
             data: {
-              title: 'Honeypot Network',
-              subtitle: 'Multi-node deception infrastructure for capturing real attacker TTPs',
-              tags: [{ label: 'Python', cls: 'tag-peach' }, { label: 'Docker', cls: 'tag-blue' }, { label: 'Threat Intel', cls: 'tag-teal' }],
-              description: `A multi-node honeypot infrastructure built to capture and analyze real-world attacker behaviour. Distributed across several decoy services — SSH, HTTP, FTP, and SMB — the network logged over 2,000 unique attack sessions over its first month of operation.
-
-All data was fed into a custom ELK stack for visualization and pattern analysis. Sessions were correlated by source IP, attack vector, and command sequence to surface recurring TTPs and automated scanning patterns.
-
-The most valuable insight was mapping attacker dwell time and pivot behaviour — watching how actors move from initial access attempts to lateral probing when they think they've found a foothold.`,
-              tech: ['T-Pot', 'ELK Stack', 'Python', 'Docker', 'Suricata', 'iptables'],
-              features: [
-                { title: '// Deception Layer', desc: 'SSH, HTTP, FTP, and SMB honeypots deployed across multiple decoy nodes — mimicking real services' },
-                { title: '// ELK Dashboards', desc: 'Custom Kibana dashboards for session correlation, IP geolocation, and TTP mapping' },
-                { title: '// TTP Capture', desc: '2,000+ unique attack sessions logged — lateral movement and persistence attempts recorded' },
-                { title: '// Alerting Pipeline', desc: 'Real-time alerts on novel attack signatures piped to SIEM for analyst review' }
+              title: 'Automated CVE Exploiter',
+              subtitle: 'Autonomous agentic system achieving 86% Docker build success across 400+ CVEs',
+              tags: [
+                { label: 'Research', cls: 'tag-red' },
+                { label: 'C++ / Python', cls: 'tag-peach' },
+                { label: 'LangGraph', cls: 'tag-mauve' },
+                { label: 'Active', cls: 'tag-green' },
               ],
-              stats: [{ n: '2000+', l: 'Sessions' }, { n: '4', l: 'Protocols' }, { n: 'Live', l: 'Status' }],
+              description: `An autonomous agent that ingests CVE specifications and automatically sets up Docker exploit environments to simulate vulnerability reproduction. Built as part of the SFU Cybersecurity & AI Research lab, and proposed to Trend Micro for accelerating zero-day to n-day lifecycle management.
+
+The core challenge was the 49% failure rate in the original CVE-Genie (2025) framework when handling complex C++ and Java environments. The solution was a hybrid deterministic-agentic architecture: deterministic logic handles environment scaffolding and dependency resolution, while an LLM agent manages the non-deterministic edge cases that static pipelines can't anticipate.
+
+Key engineering decisions: a universal language agent detector that identifies the target language from CVE metadata and selects the appropriate build strategy, and an automated rollback system that captures build state at checkpoints and recovers from failure without human intervention. Docker build success improved from 51% to 86%.
+
+A processing engine parsed and categorized 400+ distinct CVEs to determine exploitability — classifying by attack vector, complexity, privileges required, and available proof-of-concept references.`,
+              tech: ['C++', 'Python', 'Docker', 'LangGraph', 'LLM Integration', 'Agentic Workflows'],
+              features: [
+                { title: '// 86% Build Success', desc: 'Universal language detector + automated rollback system — up from 51% in the baseline CVE-Genie framework' },
+                { title: '// Hybrid Architecture', desc: 'Deterministic scaffolding for known patterns + LLM agent for edge cases — best of both approaches' },
+                { title: '// 400+ CVE Pipeline', desc: 'Processing engine parsed and categorized 400+ CVEs by exploitability, attack vector, and complexity' },
+                { title: '// Trend Micro Proposal', desc: 'Proposed to Trend Micro for integration into zero-day to n-day lifecycle management workflows' },
+              ],
+              stats: [{ n: '86%', l: 'Build Success' }, { n: '400+', l: 'CVEs Processed' }, { n: 'Jan 2026–', l: 'Timeline' }],
             }
           },
 
-          'siem-detection-rules': {
+          'password-crypt-tool': {
             type: 'file',
             data: {
-              title: 'SIEM Detection Rules',
-              subtitle: '40+ custom Splunk detection rules — 60% false positive reduction via behavioral baselining',
-              tags: [{ label: 'Splunk', cls: 'tag-mauve' }, { label: 'Sigma', cls: 'tag-blue' }, { label: 'ATT&CK', cls: 'tag-green' }],
-              description: `Authored and tuned a library of 40+ detection rules for a Splunk SIEM environment. The project started as a false-positive reduction exercise — the existing ruleset was generating enough noise to bury real alerts in the queue.
-
-The approach was behavioral baselining: establish what "normal" looks like per-user and per-host over a rolling 30-day window, then trigger only on statistically significant deviations. Rules were mapped to MITRE ATT&CK techniques to ensure coverage was systematic rather than reactive.
-
-End result: 60% reduction in false positives. P1 mean time to acknowledge dropped from 18 minutes to under 4.`,
-              tech: ['Splunk SPL', 'Python', 'Sigma Rules', 'MITRE ATT&CK', 'Behavioral Analysis'],
-              features: [
-                { title: '// Behavioral Baseline', desc: 'Rolling 30-day user and host baselines — deviations trigger, not static thresholds' },
-                { title: '// ATT&CK Mapped', desc: 'Every rule tagged to a MITRE technique — coverage gaps surfaced and prioritized' },
-                { title: '// 60% FP Reduction', desc: 'Alert queue noise cut by 60% — P1 MTTA dropped from 18 min to under 4 min' },
-                { title: '// Sigma Export', desc: 'Rules exported in Sigma format for portability across SIEM platforms' }
+              title: 'Multi-Threaded Cryptanalysis Tool',
+              subtitle: 'High-performance hash cracking suite in C++23 — MD5, SHA1, SHA256, SHA512',
+              tags: [
+                { label: 'C++23', cls: 'tag-peach' },
+                { label: 'Cryptography', cls: 'tag-blue' },
+                { label: 'Active', cls: 'tag-green' },
               ],
-              stats: [{ n: '40+', l: 'Rules' }, { n: '60%', l: 'FP Reduction' }, { n: '<4min', l: 'P1 MTTA' }],
+              description: `A high-performance hash cracking suite built in C++23, supporting MD5, SHA1, SHA256, and SHA512. Implements three attack vectors: dictionary attack, brute-force enumeration, and rule-based mutation (leet substitutions, suffix/prefix appending, case toggling).
+
+The performance engineering is where this gets interesting. Memory-mapped I/O (mmap) enables zero-copy wordlist ingestion — the wordlist is mapped directly into the process address space rather than read into heap buffers, eliminating the copy overhead that limits I/O-bound crackers. Work partitioning is lock-free: std::jthread workers claim chunks atomically via std::atomic operations, with no mutex contention on the hot path.
+
+The result is linear throughput scaling with core count — adding cores gives proportional performance gains rather than hitting synchronization bottlenecks.`,
+              tech: ['C++23', 'std::jthread', 'std::atomic', 'mmap / Memory-Mapped I/O', 'Lock-Free Programming'],
+              features: [
+                { title: '// Zero-Copy Ingestion', desc: 'mmap-based wordlist loading eliminates heap copy overhead — wordlist mapped directly into address space' },
+                { title: '// Lock-Free Partitioning', desc: 'Workers claim chunks via atomic operations — no mutex contention on the hot path, linear core scaling' },
+                { title: '// 3 Attack Vectors', desc: 'Dictionary, brute-force enumeration, and rule-based mutation (substitutions, affixes, case variants)' },
+                { title: '// 4 Hash Algorithms', desc: 'MD5, SHA1, SHA256, SHA512 — modular design allows adding new algorithms without core changes' },
+              ],
+              stats: [{ n: '4', l: 'Hash Algorithms' }, { n: 'Linear', l: 'Core Scaling' }, { n: 'Mar 2026–', l: 'Timeline' }],
             }
           },
 
-          'phishing-triage-tool': {
+          'endpoint-monitor-lab': {
             type: 'file',
             data: {
-              title: 'Phishing Triage Tool',
-              subtitle: 'Automated phishing email analysis pipeline with VirusTotal enrichment',
-              tags: [{ label: 'Python', cls: 'tag-peach' }, { label: 'VirusTotal', cls: 'tag-red' }, { label: 'IR', cls: 'tag-blue' }],
-              description: `An automated triage pipeline for phishing reports submitted to the SOC inbox. Before this, analysts were manually parsing email headers, extracting URLs, and running VirusTotal checks one-by-one — a slow process that created a backlog during phishing campaigns.
-
-The tool ingests raw .eml files, extracts headers, sender reputation metadata, embedded URLs, and attachment hashes. Each IOC is automatically enriched via the VirusTotal API and scored. The output is a structured triage report — verdict, confidence score, and recommended action — generated in under 30 seconds per email.
-
-During a simulated spear-phishing campaign test, the tool correctly flagged 97% of malicious samples and cut analyst triage time by 80%.`,
-              tech: ['Python', 'VirusTotal API', 'SMTP / MIME parsing', 'IOC extraction', 'Pandas'],
-              features: [
-                { title: '// Header Analysis', desc: 'Full SMTP header parsing — SPF, DKIM, DMARC checks, relay chain reconstruction' },
-                { title: '// IOC Extraction', desc: 'URLs, domains, hashes, and IPs automatically extracted and deobfuscated' },
-                { title: '// VT Enrichment', desc: 'All IOCs checked against VirusTotal API — community scores and detections surfaced' },
-                { title: '// Triage Report', desc: 'Structured verdict report generated in <30s — verdict, confidence score, action recommendation' }
+              title: 'Distributed Endpoint Monitoring Lab',
+              subtitle: 'Velociraptor DFIR deployment for real-time forensic collection across Windows endpoints',
+              tags: [
+                { label: 'DFIR', cls: 'tag-red' },
+                { label: 'Velociraptor', cls: 'tag-blue' },
+                { label: 'Blue Team', cls: 'tag-teal' },
               ],
-              stats: [{ n: '97%', l: 'Detection Rate' }, { n: '80%', l: 'Time Saved' }, { n: '<30s', l: 'Per Email' }],
+              description: `A distributed endpoint monitoring lab built around Velociraptor DFIR — an open-source endpoint visibility and digital forensics platform. Deployed a Velociraptor server on Ubuntu and enrolled Windows 10 endpoints using customized YAML client configurations for persistent, authenticated enrollment.
+
+The lab enables remote triage, live memory analysis, and registry monitoring across all enrolled endpoints simultaneously. Forensic collection is automated via VQL (Velociraptor Query Language) hunts: prefetch files, browser history, scheduled tasks, and service persistence mechanisms are collected automatically on demand, cutting manual investigation time significantly during simulated incident response scenarios.
+
+Built as a realistic blue team detection and response environment — the same architecture used by enterprise SOC teams for endpoint visibility.`,
+              tech: ['Velociraptor DFIR', 'VQL', 'Ubuntu Server', 'Windows 10', 'YAML', 'Digital Forensics'],
+              features: [
+                { title: '// Persistent Enrollment', desc: 'Customized YAML client configs for authenticated, persistent endpoint enrollment — survives reboots' },
+                { title: '// Remote Triage', desc: 'Live memory analysis, registry monitoring, and process inspection across all endpoints simultaneously' },
+                { title: '// Automated Collection', desc: 'VQL hunts auto-collect prefetch files, browser history, scheduled tasks, and persistence mechanisms' },
+                { title: '// IR Simulation', desc: 'Full incident response drill environment — detection through containment with real forensic artifacts' },
+              ],
+              stats: [{ n: 'VQL', l: 'Query Language' }, { n: 'Live', l: 'Collection' }, { n: 'Dec 2025', l: 'Completed' }],
             }
           },
 
-          'network-anomaly-detector': {
+          'ttp-map-dashboard': {
             type: 'file',
             data: {
-              title: 'Network Anomaly Detector',
-              subtitle: 'ML-assisted traffic profiler flagging lateral movement and exfiltration patterns',
-              tags: [{ label: 'Python', cls: 'tag-peach' }, { label: 'ML', cls: 'tag-mauve' }, { label: 'Zeek', cls: 'tag-teal' }],
-              description: `A machine learning-assisted network traffic analyzer that baselines normal enterprise traffic patterns and flags statistically anomalous behaviour indicative of lateral movement or data exfiltration.
-
-Built on top of Zeek log output, the tool trains an Isolation Forest model on connection frequency, byte volume, port usage, and timing patterns per host. Anomalies are scored and ranked — the highest-confidence detections are surfaced for analyst review via a lightweight dashboard.
-
-Tested against a PCAP corpus of real APT lateral movement samples (from public threat intel sharing repositories). Detected 89% of lateral movement events with a false positive rate under 3%.`,
-              tech: ['Python', 'scikit-learn', 'Zeek', 'Wireshark', 'Isolation Forest', 'Pandas'],
-              features: [
-                { title: '// Behavioral Baseline', desc: 'Per-host traffic profiles built over a 14-day window — volume, timing, port, and peer patterns' },
-                { title: '// Isolation Forest', desc: 'Unsupervised anomaly detection — no labeled training data required, adapts to environment' },
-                { title: '// Lateral Movement', desc: '89% detection rate on APT lateral movement PCAP corpus — sub-3% false positive rate' },
-                { title: '// Zeek Integration', desc: 'Runs directly on Zeek conn.log output — no additional sensors or agents required' }
+              title: 'Adversary TTP Mapping Dashboard',
+              subtitle: 'Dockerized MITRE ATT&CK Navigator with APT heatmaps and TAXII threat intel integration',
+              tags: [
+                { label: 'Threat Intel', cls: 'tag-red' },
+                { label: 'MITRE ATT&CK', cls: 'tag-blue' },
+                { label: 'Docker', cls: 'tag-teal' },
               ],
-              stats: [{ n: '89%', l: 'Detection' }, { n: '<3%', l: 'False Positive' }, { n: 'Zeek', l: 'Input' }],
+              description: `A visual threat intelligence dashboard built on a Dockerized MITRE ATT&CK Navigator instance, enabling systematic mapping of adversary Tactics, Techniques, and Procedures (TTPs) from threat intelligence reports and incident data.
+
+Custom heatmaps were created for specific APT groups — including Bear APT — by ingesting threat intelligence feeds and overlaying technique frequency onto the ATT&CK matrix. The heatmaps surface detection gaps: techniques used by targeted threat actors that aren't covered by existing detection rules become immediately visible.
+
+TAXII configuration logic aligns defensive capabilities with organizational risk profiles — pulling structured threat intelligence from TAXII servers and mapping it to the ATT&CK matrix in near-real-time. Docker volume mounts provide persistent data layers, enabling ingestion and export of JSON-based threat intelligence across teams without data loss between container restarts.`,
+              tech: ['MITRE ATT&CK Navigator', 'Docker', 'TAXII', 'STIX/JSON', 'Threat Intelligence'],
+              features: [
+                { title: '// APT Heatmaps', desc: 'Custom heatmaps for specific APT groups (Bear APT) — technique frequency overlaid on ATT&CK matrix' },
+                { title: '// Detection Gap Analysis', desc: 'Techniques used by targeted actors but missing from detection coverage surface immediately on the matrix' },
+                { title: '// TAXII Integration', desc: 'Pulls structured threat intel from TAXII servers — aligns defensive posture with real threat actor behaviour' },
+                { title: '// Persistent Data Layer', desc: 'Docker volume mounts persist intelligence feeds across container restarts — shareable across teams' },
+              ],
+              stats: [{ n: 'ATT&CK', l: 'Framework' }, { n: 'TAXII', l: 'Intel Feed' }, { n: 'Dec 2025', l: 'Completed' }],
             }
           },
 
-          'ir-runbook-automation': {
+          'home-lab': {
             type: 'file',
             data: {
-              title: 'IR Runbook Automation',
-              subtitle: 'Scripted incident response playbooks — auto-isolate, collect, and page on P1',
-              tags: [{ label: 'Python', cls: 'tag-peach' }, { label: 'PowerShell', cls: 'tag-blue' }, { label: 'IR', cls: 'tag-green' }],
-              description: `Automated incident response playbooks covering the most common P1 and P2 scenarios in the SOC. When a high-confidence detection fires in the SIEM, the runbook engine triggers the appropriate playbook without waiting for analyst acknowledgement.
-
-Each playbook handles: endpoint isolation via EDR API, forensic artifact collection (memory, event logs, prefetch, registry hives), evidence packaging and upload to case management, and on-call paging via PagerDuty. The time between alert fire and containment dropped from an average of 23 minutes to under 6.
-
-Playbooks cover: ransomware staging, credential dumping, C2 beacon establishment, and insider threat data staging patterns.`,
-              tech: ['Python', 'PowerShell', 'PagerDuty API', 'EDR API', 'SIEM Integration'],
-              features: [
-                { title: '// Auto-Isolation', desc: 'Affected endpoints isolated via EDR API within seconds of P1 alert — no analyst action required' },
-                { title: '// Artifact Collection', desc: 'Memory, event logs, prefetch, registry hives collected and packaged automatically' },
-                { title: '// On-Call Paging', desc: 'PagerDuty integration pages on-call analyst with case summary and timeline' },
-                { title: '// 4 Scenario Coverage', desc: 'Ransomware staging, cred dumping, C2 beacon, insider data staging — each with dedicated playbook' }
+              title: 'Security Research Home Lab',
+              subtitle: 'Multi-segment lab for detection testing, log analysis, and attack/defence simulation',
+              tags: [
+                { label: 'Kali Linux', cls: 'tag-red' },
+                { label: 'Splunk', cls: 'tag-blue' },
+                { label: 'Blue Team', cls: 'tag-teal' },
               ],
-              stats: [{ n: '<6min', l: 'Containment' }, { n: '4', l: 'Scenarios' }, { n: 'Auto', l: 'Trigger' }],
+              description: `A multi-segment home lab built for security research, detection engineering, and practising attack-and-defence scenarios in a controlled environment. The lab is used to deploy, break, and harden services — creating realistic conditions for testing detection queries and automation tools.
+
+Splunk is configured for security event monitoring and detection rule validation. Log sources from multiple lab segments feed into Splunk, enabling realistic SIEM workflows: writing SPL queries, tuning correlation rules, and validating that detections fire correctly against known attack patterns.
+
+The attack side uses Kali Linux and Burp Suite for web exploitation, enumeration, and traffic interception. Lab segments are isolated using VLANs to prevent unintended lateral spread and to simulate network segmentation controls.`,
+              tech: ['Kali Linux', 'Splunk', 'Burp Suite', 'VLAN Segmentation', 'SPL', 'Log Analysis'],
+              features: [
+                { title: '// Detection Validation', desc: 'Splunk SIEM configured with real log sources — SPL queries and correlation rules tested against live attack traffic' },
+                { title: '// Attack Simulation', desc: 'Kali Linux attack segment with Burp Suite for web exploitation, enumeration, and traffic inspection' },
+                { title: '// Network Segmentation', desc: 'VLAN-isolated segments simulate real enterprise network controls and prevent lateral spread' },
+                { title: '// Automation Testing', desc: 'Platform for testing and iterating on detection automation tools in repeatable attack/defence scenarios' },
+              ],
+              stats: [{ n: 'Splunk', l: 'SIEM' }, { n: 'Multi-Seg', l: 'Network' }, { n: 'Ongoing', l: 'Status' }],
             }
-          }
+          },
+
+          'pokemon-classifier': {
+            type: 'file',
+            data: {
+              title: 'Pokémon Image Classifier',
+              subtitle: '92% accuracy on 10,000+ images — ConvNeXt pipeline with Flask API and SQL logging',
+              tags: [
+                { label: 'Python', cls: 'tag-peach' },
+                { label: 'ML / ConvNeXt', cls: 'tag-mauve' },
+                { label: 'Flask', cls: 'tag-blue' },
+              ],
+              description: `An end-to-end image classification pipeline achieving 92% accuracy on a 10,000+ image dataset. Built on ConvNeXt — a modern convolutional architecture that matches Vision Transformer performance while retaining the inductive biases that make CNNs efficient on smaller datasets.
+
+The pipeline includes a real-time RESTful Flask API for inference: images are submitted via POST request, preprocessed, passed through the ConvNeXt model, and a classification result with confidence scores is returned in under 200ms. All inference requests and results are logged to a SQL database for monitoring, retraining data collection, and accuracy tracking over time.
+
+The project was a deliberate exploration of applying modern computer vision architectures to a well-defined classification problem — balancing model complexity, training data size, and inference latency for a production-viable deployment.`,
+              tech: ['Python', 'ConvNeXt', 'Flask', 'SQL', 'REST API', 'Computer Vision'],
+              features: [
+                { title: '// 92% Accuracy', desc: 'ConvNeXt pipeline evaluated on 10,000+ image test set — competitive with transformer-based approaches' },
+                { title: '// Real-Time API', desc: 'Flask RESTful API — image in, classification + confidence out in <200ms per inference request' },
+                { title: '// SQL Logging', desc: 'All inference requests and results persisted to SQL — enables accuracy tracking and retraining data collection' },
+                { title: '// End-to-End Pipeline', desc: 'Data preprocessing, model training, evaluation, and API deployment all in one codebase' },
+              ],
+              stats: [{ n: '92%', l: 'Accuracy' }, { n: '10k+', l: 'Images' }, { n: '<200ms', l: 'Inference' }],
+            }
+          },
+
+          'disaster-alert-system': {
+            type: 'file',
+            data: {
+              title: 'Disaster Alert System',
+              subtitle: '40% route calculation speedup — agentic real-time evacuation routing platform',
+              tags: [
+                { label: 'React', cls: 'tag-blue' },
+                { label: 'TypeScript', cls: 'tag-teal' },
+                { label: 'Flask', cls: 'tag-peach' },
+              ],
+              description: `A real-time disaster response platform that orchestrates multiple REST APIs into an agentic evacuation routing system. The platform ingests live disaster event data, calculates optimal evacuation routes considering road conditions and hazard zones, and delivers routing instructions in real-time.
+
+The 40% reduction in route calculation time came from replacing sequential API calls with parallel orchestration — the platform now fans out to multiple data sources simultaneously and aggregates results rather than waiting for each response in series. A Flask backend handles orchestration logic while a React/TypeScript frontend delivers a responsive, real-time UI.
+
+The agentic component handles edge cases: when primary routes are blocked or data sources are unavailable, the agent dynamically re-routes without user intervention — analogous to automated incident response playbook execution in a SOC context.`,
+              tech: ['React', 'TypeScript', 'Flask', 'REST APIs', 'Agentic Orchestration', 'Real-Time Data'],
+              features: [
+                { title: '// 40% Faster Routing', desc: 'Parallel API orchestration replaces sequential calls — fan-out to multiple sources, aggregate results simultaneously' },
+                { title: '// Agentic Re-Routing', desc: 'Autonomous re-routing when primary paths are blocked — no user intervention required for edge cases' },
+                { title: '// Live Data Integration', desc: 'Ingests real-time disaster event feeds, road condition data, and hazard zone boundaries' },
+                { title: '// React/TypeScript UI', desc: 'Responsive frontend with real-time route updates — built with TypeScript for type safety and maintainability' },
+              ],
+              stats: [{ n: '40%', l: 'Faster Routing' }, { n: 'Real-Time', l: 'Data' }, { n: 'May–Aug 2025', l: 'Timeline' }],
+            }
+          },
+
+          'gwl-app': {
+            type: 'file',
+            data: {
+              title: 'GWLApp',
+              subtitle: 'Privacy-compliant mobile communication platform — React Native, Firebase, RBAC',
+              tags: [
+                { label: 'React Native', cls: 'tag-blue' },
+                { label: 'Firebase', cls: 'tag-peach' },
+                { label: 'Production', cls: 'tag-green' },
+              ],
+              description: `A privacy-compliant mobile communication platform deployed to production and serving real users. Built with React Native for cross-platform mobile delivery, Firebase for real-time data sync and authentication, and Firestore as the document store.
+
+The access control model is role-based (RBAC): users are assigned roles at the organisation level, with permissions enforced server-side through Firestore security rules. No client-side permission checks — all access decisions happen at the database layer, preventing privilege escalation through client manipulation.
+
+Privacy compliance was a first-class concern from the start: data minimisation (only necessary fields stored), access logging for audit trails, and role-gated data visibility so users only see records their role permits. The app reached production deployment with real user adoption — not just a prototype.`,
+              tech: ['React Native', 'Firebase', 'Firestore', 'RBAC', 'TypeScript', 'Mobile'],
+              features: [
+                { title: '// Production Deployment', desc: 'Live app serving real users — not a prototype. Full deployment lifecycle from dev to production.' },
+                { title: '// Server-Side RBAC', desc: 'Permissions enforced in Firestore security rules — no client-side trust, role decisions at the data layer' },
+                { title: '// Privacy-Compliant', desc: 'Data minimisation, access logging, and role-gated visibility built in from the start — not bolted on after' },
+                { title: '// Cross-Platform', desc: 'React Native delivers iOS and Android from a single codebase with native performance characteristics' },
+              ],
+              stats: [{ n: 'Live', l: 'Status' }, { n: 'RBAC', l: 'Access Control' }, { n: 'Sep 2025–Jan 2026', l: 'Built' }],
+            }
+          },
 
         }
       },
 
-      // EXPERIENCE
+      // ── EXPERIENCE ──────────────────────────────────────────
       'experience': {
         type: 'dir',
         children: {
-          'soc-analyst.md': {
+
+          'research-assistant.md': {
             type: 'file',
             data: {
-              title: 'SOC Analyst',
-              subtitle: '[Your Company] · Current Role',
-              tags: [{ label: 'Current', cls: 'tag-green' }, { label: 'Blue Team', cls: 'tag-blue' }],
-              description: `Working as a SOC analyst — primary responsibilities are alert triage, detection engineering, and threat hunting.
+              title: 'Research Assistant',
+              subtitle: 'Department of Cybersecurity & AI, SFU · Dec 2025 – Present',
+              tags: [{ label: 'Current', cls: 'tag-green' }, { label: 'Research', cls: 'tag-mauve' }, { label: 'SFU', cls: 'tag-blue' }],
+              description: `Research assistant in the SFU Department of Cybersecurity and AI, working on automated vulnerability exploitation and CVE lifecycle management.
 
-Daily operations involve monitoring 500+ endpoint alerts across the SIEM platform, triaging P1–P3 incidents through to resolution or escalation, and continuously tuning detection rules to reduce alert fatigue without sacrificing coverage.
+Core contribution: identified and resolved critical reliability gaps in the CVE-Genie (2025) framework, specifically its 49% failure rate in complex C++ and Java environments. Engineered a hybrid deterministic-agentic architecture that improved Docker build success from 51% to 80%.
 
-Beyond reactive work, running proactive threat hunts using MITRE ATT&CK as the framework — looking for attacker behaviour that hasn't triggered an alert yet. Most recent hunt identified a persistence mechanism that had been sitting undetected for 11 days.`,
-              tech: ['Splunk', 'CrowdStrike', 'Elastic SIEM', 'MITRE ATT&CK', 'Python', 'Wireshark'],
+Collaborated with faculty mentors to develop an automated pipeline for CVE analysis, exploit simulation, and functional proof-of-concept (PoC) generation. The pipeline was proposed to Trend Micro for accelerating zero-day to n-day lifecycle management — reducing the time between CVE publication and actionable exploit intelligence.`,
+              tech: ['C++', 'Python', 'Docker', 'LangGraph', 'LLM Integration', 'Agentic Workflows'],
               features: [
-                { title: '// Alert Triage', desc: '500+ endpoint alerts monitored daily — P1 through P3 triaged, investigated, and resolved or escalated' },
-                { title: '// Detection Engineering', desc: 'Ongoing SIEM rule authoring and tuning — behavioral baselines, ATT&CK-mapped coverage' },
-                { title: '// Threat Hunting', desc: 'Proactive hunts using MITRE ATT&CK — most recent surfaced 11-day undetected persistence' },
-                { title: '// Incident Response', desc: 'Active participation in P1 IR — containment, forensics, timeline reconstruction, and post-incident reports' }
+                { title: '// 80% Build Success', desc: 'Fixed 49% failure rate in CVE-Genie — hybrid architecture improved Docker build success to 80%' },
+                { title: '// Trend Micro Proposal', desc: 'Proposed automated CVE pipeline to Trend Micro for zero-day to n-day lifecycle acceleration' },
+                { title: '// Exploit Simulation', desc: 'Automated pipeline for CVE analysis, exploit simulation, and functional PoC generation' },
+                { title: '// Research Collaboration', desc: 'Working directly with faculty mentors in a dedicated cybersecurity AI research environment' },
               ],
-              stats: [{ n: '500+', l: 'Daily Alerts' }, { n: 'P1–P3', l: 'Coverage' }, { n: '2023–', l: 'Timeline' }],
+              stats: [{ n: '80%', l: 'Build Success' }, { n: 'Dec 2025–', l: 'Timeline' }, { n: 'SFU', l: 'Institution' }],
             }
           },
-          'security-intern.md': {
+
+          'cybersci-regionals.md': {
             type: 'file',
             data: {
-              title: 'IT Security Intern',
-              subtitle: '[Your Company] · 2022–2023',
-              tags: [{ label: 'Internship', cls: 'tag-mauve' }, { label: 'Security', cls: 'tag-blue' }],
-              description: `First industry security role — working across vulnerability management, log analysis, and documentation.
+              title: 'CyberSci Canada Regionals',
+              subtitle: 'Team Competitor · Top 5 Finish in BC · Sep 2025',
+              tags: [{ label: 'Competition', cls: 'tag-red' }, { label: 'Top 5 BC', cls: 'tag-yellow' }, { label: 'CTF', cls: 'tag-teal' }],
+              description: `Competed at CyberSci Canada Regionals, achieving a Top 5 finish in British Columbia. CyberSci is Canada's national university cybersecurity competition, with regional heats feeding into a national championship.
 
-Core responsibilities included running Nessus scans across internal asset ranges, triaging findings by CVSS score and exploitability, and coordinating with system owners on patch scheduling. Wrote remediation guidance for 15+ common vulnerability classes.
+The competition spanned red and blue team operations: web exploitation, binary reverse engineering, and digital forensics challenges — all reflecting real SOC incident response scenarios rather than isolated puzzle-style CTF challenges.
 
-Also built out the first version of the SOC's incident response runbook library — 12 documented playbooks covering the most common alert scenarios, which became the foundation for the later automation work.`,
-              tech: ['Nessus', 'Splunk', 'Python', 'Bash', 'Wireshark'],
+Tools applied: Burp Suite for web proxy and vulnerability exploitation, Wireshark for packet capture analysis and network forensics, and Ghidra for binary reverse engineering and static analysis. Findings were documented and response actions coordinated with team members throughout each challenge.`,
+              tech: ['Burp Suite', 'Wireshark', 'Ghidra', 'Web Exploitation', 'Reverse Engineering', 'Forensics'],
               features: [
-                { title: '// Vulnerability Management', desc: 'Nessus scans across internal ranges — CVSS triage, patch coordination, remediation guidance' },
-                { title: '// Log Analysis', desc: 'Network log review for anomalous patterns — first exposure to SIEM workflows and correlation logic' },
-                { title: '// Runbook Development', desc: 'Authored 12 IR playbooks covering common SOC alert scenarios — still in use post-internship' },
-                { title: '// Patch Management', desc: 'Coordinated with system owners on remediation scheduling — tracked patch compliance across asset inventory' }
+                { title: '// Top 5 in BC', desc: 'CyberSci Canada Regionals — top 5 provincial finish in a national university cybersecurity competition' },
+                { title: '// Red + Blue Team', desc: 'Web exploitation, reverse engineering, and forensics — full attack and defence scope in one competition' },
+                { title: '// Ghidra RE', desc: 'Binary reverse engineering and static analysis — disassembly, decompilation, and function identification' },
+                { title: '// Team Coordination', desc: 'Documented findings and coordinated response actions with team members across simultaneous challenges' },
               ],
-              stats: [{ n: '12', l: 'Runbooks' }, { n: 'Nessus', l: 'Primary Tool' }, { n: '2022–23', l: 'Timeline' }],
+              stats: [{ n: 'Top 5', l: 'BC Ranking' }, { n: 'Sep 2025', l: 'Date' }, { n: 'National', l: 'Competition' }],
             }
-          }
+          },
+
+          'sfu-cybersecurity-club.md': {
+            type: 'file',
+            data: {
+              title: 'External Director',
+              subtitle: 'SFU Cybersecurity Club · Dec 2024 – Present',
+              tags: [{ label: 'Current', cls: 'tag-green' }, { label: 'Leadership', cls: 'tag-mauve' }, { label: 'SFU', cls: 'tag-blue' }],
+              description: `External Director of the SFU Cybersecurity Club — responsible for industry partnerships, external outreach, and driving technical engagement across the club's membership.
+
+Achieved a 30% increase in member engagement (measured by event attendance) by coordinating 10+ technical events and delivering live demonstrations on cybersecurity workflows to 30+ members per session. Events covered SOC workflows, CTF walkthroughs, tool demonstrations, and industry career panels.
+
+Orchestrated strategic partnerships between the SFU Cybersecurity Club and industry professionals — managing high-level outreach to integrate corporate expertise into student-led technical programming. Built relationships with security practitioners to bring real-world perspective into academic club activities.`,
+              tech: ['Event Coordination', 'Industry Outreach', 'Technical Demos', 'Partnership Development'],
+              features: [
+                { title: '// 30% Engagement Lift', desc: '30% increase in member engagement measured by event attendance across the semester' },
+                { title: '// 10+ Technical Events', desc: 'Coordinated 10+ events per semester — CTF walkthroughs, tool demos, SOC workflow sessions' },
+                { title: '// Industry Partnerships', desc: 'Managed outreach to industry professionals — integrated corporate expertise into club programming' },
+                { title: '// Live Demos', desc: 'Delivered live cybersecurity workflow demonstrations to 30+ members per session' },
+              ],
+              stats: [{ n: '30%', l: 'Engagement ↑' }, { n: '10+', l: 'Events' }, { n: 'Dec 2024–', l: 'Timeline' }],
+            }
+          },
+
         }
       },
 
-      // SKILLS
+      // ── SKILLS ──────────────────────────────────────────────
       'skills': {
         type: 'dir',
         children: {
-          'platforms.md': {
-            type: 'file',
-            data: {
-              title: 'platforms.md',
-              subtitle: 'SIEM, EDR, and blue team tooling — daily drivers',
-              tags: [{ label: 'Skills', cls: 'tag-green' }, { label: 'Platforms', cls: 'tag-blue' }],
-              description: `Tools I work with daily across detection, hunting, and response. Honest proficiency — no filler.`,
-              tech: [],
-              features: [
-                { title: '// Splunk', desc: 'Primary SIEM — SPL queries, detection rule authoring, dashboards, and scheduled searches. Most comfortable here.' },
-                { title: '// Elastic SIEM', desc: 'KQL queries, Kibana dashboards, and ECS-mapped detection rules. Used heavily in the honeypot project.' },
-                { title: '// Wireshark / Zeek', desc: 'PCAP analysis for forensics and anomaly detection. Comfortable reading full packet captures and Zeek conn logs.' },
-                { title: '// Snort / Suricata', desc: 'IDS/IPS rule writing and tuning. Network-layer detection as a complement to host-based coverage.' },
-                { title: '// CrowdStrike Falcon', desc: 'EDR telemetry, process tree analysis, and host isolation via API. Used in IR automation work.' },
-                { title: '// Nessus', desc: 'Vulnerability scanning, CVSS triage, and remediation tracking across internal asset inventories.' }
-              ],
-              stats: [{ n: 'Splunk', l: 'Primary SIEM' }, { n: 'CrowdStrike', l: 'EDR' }, { n: '6+', l: 'Platforms' }],
-            }
-          },
+
           'languages.md': {
             type: 'file',
             data: {
               title: 'languages.md',
-              subtitle: 'Programming and scripting languages used in security work',
+              subtitle: 'Programming and scripting languages — daily drivers and working proficiency',
               tags: [{ label: 'Skills', cls: 'tag-green' }, { label: 'Languages', cls: 'tag-peach' }],
-              description: `Languages I actually write in security work — scripting, automation, and detection logic. No buzzword filler.`,
+              description: `Languages I write across security research, systems programming, and application development. Honest proficiency — no filler.`,
               tech: [],
               features: [
-                { title: '// Python', desc: 'Primary scripting language — phishing triage tools, IR automation, API integrations, and data analysis. Most comfortable here.' },
-                { title: '// Bash / ZSH', desc: 'Daily shell environment. Write scripts for log parsing, system enumeration, and SOC workflow automation routinely.' },
-                { title: '// PowerShell', desc: 'Windows IR and forensics — artifact collection, event log parsing, and EDR API calls from the IR runbook suite.' },
-                { title: '// SQL / SPL', desc: 'Splunk SPL and SQL for SIEM queries, data extraction, and detection rule logic. Heavy daily use in the SOC.' },
-                { title: '// YARA', desc: 'Malware signature rules for file-based detection — used in sandboxed analysis and EDR integration.' }
+                { title: '// Python', desc: 'Primary language — security tooling, ML pipelines, API integration, agentic workflows, LangGraph. Used daily.' },
+                { title: '// C / C++', desc: 'Systems programming — CVE exploiter engine, cryptanalysis tool (C++23), RISC-V work. Comfortable with manual memory management.' },
+                { title: '// JavaScript / TypeScript', desc: 'React and React Native frontends. TypeScript preferred for type safety — used in GWLApp and disaster alert system.' },
+                { title: '// PowerShell', desc: 'Windows-side scripting — endpoint forensics, artifact collection, EDR automation, and IR tooling.' },
+                { title: '// SQL', desc: 'Database queries and schema design — used in Flask API logging (Pokémon classifier) and SIEM data extraction.' },
               ],
-              stats: [{ n: 'Python', l: 'Primary' }, { n: '5', l: 'Languages' }, { n: 'YARA', l: 'Signatures' }],
+              stats: [{ n: 'Python', l: 'Primary' }, { n: 'C/C++', l: 'Systems' }, { n: '6+', l: 'Languages' }],
             }
           },
-          'frameworks.md': {
+
+          'security-tools.md': {
             type: 'file',
             data: {
-              title: 'frameworks.md',
-              subtitle: 'Security frameworks and methodologies — how I structure defense',
-              tags: [{ label: 'Skills', cls: 'tag-green' }, { label: 'Frameworks', cls: 'tag-teal' }],
-              description: `Frameworks aren't checkboxes — they're how I structure coverage decisions, prioritize hunting targets, and communicate risk. These are the ones I apply regularly.`,
-              tech: ['MITRE ATT&CK', 'NIST CSF', 'CIS Controls', 'ISO 27001', 'PICERL', 'Diamond Model'],
+              title: 'security-tools.md',
+              subtitle: 'Offensive and defensive tooling — competition and lab proven',
+              tags: [{ label: 'Skills', cls: 'tag-green' }, { label: 'Security', cls: 'tag-red' }],
+              description: `Security tools I've applied in real environments — competitions, research, and the home lab. Not a marketing list.`,
+              tech: [],
               features: [
-                { title: '// MITRE ATT&CK', desc: 'Primary reference for detection engineering and threat hunting — every rule and hunt is mapped to a technique. Used daily.' },
-                { title: '// PICERL (IR Lifecycle)', desc: 'Preparation, Identification, Containment, Eradication, Recovery, Lessons Learned — structures every incident response.' },
-                { title: '// NIST CSF', desc: 'Identify, Protect, Detect, Respond, Recover — used for program-level gap analysis and security posture conversations.' },
-                { title: '// Diamond Model', desc: 'Adversary-capability-infrastructure-victim model — used in threat intelligence analysis and campaign attribution work.' }
+                { title: '// Burp Suite', desc: 'Web proxy for vulnerability exploitation and HTTP inspection — used at CyberSci Regionals and in the home lab.' },
+                { title: '// Ghidra', desc: 'Binary reverse engineering — static analysis, decompilation, and function identification. Used in CTF RE challenges.' },
+                { title: '// Wireshark', desc: 'Packet capture analysis and network forensics. Competition and lab use for traffic inspection and anomaly identification.' },
+                { title: '// Splunk', desc: 'SIEM — SPL queries, detection rule authoring, correlation rule validation. Configured in the home lab environment.' },
+                { title: '// Velociraptor DFIR', desc: 'Endpoint visibility and forensic collection — deployed in distributed lab with VQL-automated artifact collection.' },
+                { title: '// Kali Linux', desc: 'Primary attack platform — enumeration, exploitation, and post-exploitation tooling across lab and competition environments.' },
               ],
-              stats: [{ n: 'ATT&CK', l: 'Primary' }, { n: 'PICERL', l: 'IR Method' }, { n: 'Daily', l: 'Usage' }],
+              stats: [{ n: 'Ghidra', l: 'RE Tool' }, { n: 'Splunk', l: 'SIEM' }, { n: 'Kali', l: 'Attack Platform' }],
             }
-          }
+          },
+
+          'ai-ml.md': {
+            type: 'file',
+            data: {
+              title: 'ai-ml.md',
+              subtitle: 'AI and ML tooling — LLM integration, agentic workflows, computer vision',
+              tags: [{ label: 'Skills', cls: 'tag-green' }, { label: 'AI / ML', cls: 'tag-mauve' }],
+              description: `AI and ML capabilities applied in real projects — not theoretical. All of this has shipped or is actively in development.`,
+              tech: ['Claude API', 'GPT Integration', 'LangGraph', 'ConvNeXt', 'Prompt Engineering'],
+              features: [
+                { title: '// LLM Integration', desc: 'Claude and GPT API integration in production — agentic CVE exploiter uses LLM reasoning for edge-case handling.' },
+                { title: '// LangGraph', desc: 'Multi-agent orchestration framework — used to build the hybrid deterministic-agentic CVE exploitation pipeline.' },
+                { title: '// Agentic Workflows', desc: 'Designing systems where LLM agents make autonomous decisions — analogous to SOC automation and IR playbooks.' },
+                { title: '// ConvNeXt', desc: 'Image classification pipeline achieving 92% accuracy on 10k+ images — modern CNN architecture for production deployment.' },
+                { title: '// Prompt Engineering', desc: 'Anthropic AI coursework certified. Structured prompting for consistent, reliable LLM output in automated pipelines.' },
+              ],
+              stats: [{ n: 'LangGraph', l: 'Orchestration' }, { n: '92%', l: 'CV Accuracy' }, { n: 'ISC2 + CC', l: 'Certified' }],
+            }
+          },
+
+          'cloud-infra.md': {
+            type: 'file',
+            data: {
+              title: 'cloud-infra.md',
+              subtitle: 'Cloud and infrastructure — Azure, Firebase, Docker',
+              tags: [{ label: 'Skills', cls: 'tag-green' }, { label: 'Cloud', cls: 'tag-blue' }],
+              description: `Cloud and infrastructure experience from deployed projects — not just coursework.`,
+              tech: ['Microsoft Azure', 'Firebase', 'Firestore', 'Docker', 'YAML'],
+              features: [
+                { title: '// Microsoft Azure', desc: 'Cloud platform experience from coursework and security research contexts — compute, storage, and identity.' },
+                { title: '// Firebase / Firestore', desc: 'Production deployment in GWLApp — real-time data sync, authentication, and server-side RBAC security rules.' },
+                { title: '// Docker', desc: 'Container orchestration for CVE exploit environments — custom images, volume mounts, and automated build pipelines.' },
+                { title: '// Self-Hosted Infrastructure', desc: 'Velociraptor DFIR server on Ubuntu, MITRE ATT&CK Navigator deployment, Splunk SIEM in home lab.' },
+              ],
+              stats: [{ n: 'Azure', l: 'Cloud' }, { n: 'Firebase', l: 'Deployed' }, { n: 'Docker', l: 'Containers' }],
+            }
+          },
+
         }
       },
 
-      // EDUCATION
+      // ── EDUCATION ───────────────────────────────────────────
       'education': {
         type: 'dir',
         children: {
+
+          'sfu.md': {
+            type: 'file',
+            data: {
+              title: 'Simon Fraser University',
+              subtitle: 'B.A.Sc. Computer Science · Sep 2023 – Dec 2027',
+              tags: [{ label: 'Education', cls: 'tag-mauve' }, { label: 'Current', cls: 'tag-green' }, { label: 'SFU', cls: 'tag-blue' }],
+              description: `Bachelor of Applied Sciences in Computer Science at Simon Fraser University, Burnaby, BC. Expected graduation December 2027.
+
+SFU's CS program covers systems programming, algorithms, computer architecture, operating systems, networking, and software engineering — a strong match for the intersection of security and systems work I pursue outside of class.
+
+Concurrently working as a Research Assistant in the Department of Cybersecurity and AI, and serving as External Director of the SFU Cybersecurity Club — applying academic learning directly in research and industry-adjacent contexts.`,
+              tech: ['C / C++', 'Python', 'Java', 'Systems Programming', 'Algorithms', 'OS Concepts'],
+              features: [
+                { title: '// Program', desc: 'B.A.Sc. Computer Science — systems, algorithms, OS, networking, software engineering' },
+                { title: '// Research', desc: 'Concurrent research assistantship in Cybersecurity & AI department — active research alongside coursework' },
+                { title: '// Club', desc: 'External Director, SFU Cybersecurity Club — industry partnerships and technical event coordination' },
+                { title: '// Timeline', desc: 'Sep 2023 – Dec 2027 (expected) — currently enrolled' },
+              ],
+              stats: [{ n: 'SFU', l: 'University' }, { n: 'B.A.Sc.', l: 'Degree' }, { n: '2027', l: 'Expected' }],
+            }
+          },
+
+          'isc2-cc.md': {
+            type: 'file',
+            data: {
+              title: 'ISC2 Certified in Cybersecurity (CC)',
+              subtitle: 'ISC2 · Certified',
+              tags: [{ label: 'Certificate', cls: 'tag-blue' }, { label: 'Completed', cls: 'tag-green' }],
+              description: `ISC2 Certified in Cybersecurity (CC) — entry-level certification from ISC2, the organization behind CISSP. Covers security principles, network security, access controls, incident response, and governance.
+
+The CC is ISC2's foundation-level credential, demonstrating baseline security competency across the domains most relevant to security operations and analysis work. Useful as a formal baseline alongside hands-on project and competition experience.`,
+              tech: ['Security Principles', 'Network Security', 'Access Controls', 'Incident Response', 'Governance'],
+              features: [
+                { title: '// Issuer', desc: 'ISC2 — the organization behind CISSP, one of the most respected names in security certification' },
+                { title: '// Domain Coverage', desc: 'Security Concepts · Business Continuity · Access Controls · Network Security · IR · Governance' },
+                { title: '// Status', desc: 'Certified and current' },
+                { title: '// Next', desc: 'CompTIA Security+ currently in progress — formalizing the technical depth to complement the CC baseline' },
+              ],
+              stats: [{ n: 'ISC2', l: 'Issuer' }, { n: 'CC', l: 'Credential' }, { n: '✓', l: 'Certified' }],
+            }
+          },
+
           'security-plus.md': {
             type: 'file',
             data: {
               title: 'CompTIA Security+',
-              subtitle: 'CompTIA · Certified',
-              tags: [{ label: 'Certificate', cls: 'tag-blue' }, { label: 'Completed', cls: 'tag-green' }],
-              description: `CompTIA Security+ — foundational security certification covering network security, threats and vulnerabilities, access control, cryptography, and compliance.
+              subtitle: 'CompTIA · In Progress',
+              tags: [{ label: 'In Progress', cls: 'tag-yellow' }, { label: 'CompTIA', cls: 'tag-blue' }],
+              description: `CompTIA Security+ — currently studying. The Security+ is a widely recognized vendor-neutral security certification covering threats and vulnerabilities, network security, cryptography, identity management, and risk management.
 
-Provided the formal vocabulary and framework coverage to complement practical SOC work. Particularly useful for structuring conversations around risk and control frameworks with non-technical stakeholders.`,
-              tech: ['Network Security', 'Cryptography', 'Access Control', 'Risk Management', 'Compliance'],
+Building on the ISC2 CC baseline with more technical depth — the Security+ goes deeper on implementation-level security controls and is more directly applicable to SOC and blue team analyst roles.`,
+              tech: ['Threats & Vulnerabilities', 'Network Security', 'Cryptography', 'Identity Management', 'Risk Management'],
               features: [
-                { title: '// Domain Coverage', desc: 'Threats, Attacks & Vulnerabilities · Architecture · Implementation · Operations & IR · Governance & Compliance' },
-                { title: '// Issuer', desc: 'CompTIA — globally recognized vendor-neutral security certification' },
-                { title: '// Relevance', desc: 'Formal foundation for SOC and blue team work — maps well to daily analyst responsibilities' },
-                { title: '// Status', desc: 'Certified and current' }
+                { title: '// Issuer', desc: 'CompTIA — vendor-neutral certification, widely required for security analyst and SOC roles' },
+                { title: '// Depth', desc: 'More technical than the CC — implementation-level controls, threat analysis, and cryptographic concepts' },
+                { title: '// Status', desc: 'In progress — active study alongside research assistant role' },
+                { title: '// Relevance', desc: 'Directly applicable to blue team and SOC analyst career track — commonly required by employers' },
               ],
-              stats: [{ n: 'CompTIA', l: 'Issuer' }, { n: 'SY0-701', l: 'Exam' }, { n: '✓', l: 'Certified' }],
+              stats: [{ n: 'CompTIA', l: 'Issuer' }, { n: 'SY0-701', l: 'Exam' }, { n: 'In Progress', l: 'Status' }],
             }
           },
-          'cysa-plus.md': {
+
+          'anthropic-courses.md': {
             type: 'file',
             data: {
-              title: 'CompTIA CySA+',
-              subtitle: 'CompTIA · Cybersecurity Analyst · Certified',
-              tags: [{ label: 'Certificate', cls: 'tag-blue' }, { label: 'Completed', cls: 'tag-green' }],
-              description: `CompTIA CySA+ (Cybersecurity Analyst) — intermediate-level certification focused specifically on threat detection, SIEM analysis, incident response, and vulnerability management.
+              title: 'Anthropic AI Courses',
+              subtitle: 'Anthropic · Certified — Prompt Engineering & AI Safety',
+              tags: [{ label: 'Certificate', cls: 'tag-mauve' }, { label: 'Completed', cls: 'tag-green' }],
+              description: `Completed Anthropic's AI courses covering prompt engineering, model behaviour, and responsible AI development. Applied directly in the CVE vulnerability exploiter project — structured prompting for consistent, reliable LLM output in automated security pipelines.
 
-More directly applicable to blue team work than Security+ — heavy emphasis on behavioral analytics, threat hunting methodology, and the analyst workflow. The detection and hunting content maps closely to daily SOC responsibilities.`,
-              tech: ['Threat Detection', 'SIEM Analysis', 'Incident Response', 'Threat Hunting', 'Vuln Management'],
+Anthropic's courses go deeper on the mechanics of how large language models respond to different prompt structures, which is directly applicable to building reliable agentic systems where non-determinism needs to be managed.`,
+              tech: ['Prompt Engineering', 'LLM Behaviour', 'Agentic Systems', 'Claude API', 'AI Safety'],
               features: [
-                { title: '// Detection Focus', desc: 'Behavioral analytics, SIEM correlation, log analysis — directly applicable to SOC analyst work' },
-                { title: '// Threat Hunting', desc: 'Hypothesis-driven hunting methodology and ATT&CK integration covered in depth' },
-                { title: '// IR Coverage', desc: 'Full incident response lifecycle — preparation through lessons learned, playbook development' },
-                { title: '// Status', desc: 'Certified and current — intermediate level above Security+' }
+                { title: '// Prompt Engineering', desc: 'Structured prompting techniques for consistent LLM output — applied in the CVE exploiter pipeline' },
+                { title: '// Model Behaviour', desc: 'Understanding how LLMs respond to different prompt structures — key for building reliable agents' },
+                { title: '// Applied', desc: 'Directly applied in the CVE vulnerability exploiter — LLM reasoning for edge-case environment handling' },
+                { title: '// Status', desc: 'Certified and complete' },
               ],
-              stats: [{ n: 'CompTIA', l: 'Issuer' }, { n: 'CS0-003', l: 'Exam' }, { n: '✓', l: 'Certified' }],
+              stats: [{ n: 'Anthropic', l: 'Issuer' }, { n: 'Applied', l: 'In Projects' }, { n: '✓', l: 'Certified' }],
             }
           },
-          'add-cert.md': {
-            type: 'file',
-            data: {
-              title: '[Add Your Cert Here]',
-              subtitle: 'Update this file with your next certification',
-              tags: [{ label: 'In Progress', cls: 'tag-yellow' }],
-              description: `Placeholder for your next certification — BTL1, GCIH, GCFA, OSCP, or whatever you're working toward.
 
-Update the FILE_SYSTEM data in the source to add your real cert details.`,
-              tech: [],
-              features: [
-                { title: '// Suggested', desc: 'Blue Team Level 1 (BTL1) — practical blue team cert with a strong detection and IR focus' },
-                { title: '// Suggested', desc: 'GIAC GCIH — GIAC Certified Incident Handler, widely respected IR credential' },
-                { title: '// Suggested', desc: 'GIAC GCFA — forensics-focused, pairs well with the CySA+' },
-                { title: '// Edit', desc: 'Open index.html, find this entry in FILE_SYSTEM, and replace with your real data' }
-              ],
-              stats: [{ n: 'TBD', l: 'Cert' }, { n: '?', l: 'Issuer' }, { n: 'Soon', l: 'Status' }],
-            }
-          }
         }
       },
 
+      // ── ABOUT ───────────────────────────────────────────────
       'about.md': {
         type: 'file',
         data: {
           title: 'about.md',
-          subtitle: 'Vincent — Blue Team Security Analyst',
+          subtitle: 'Vincent Suen — Security Researcher & CS Student at SFU',
           tags: [{ label: 'About', cls: 'tag-green' }],
           description: `handle: vincent
-started: [year you started]
+started: SFU Sep 2023
 loc:    Vancouver, BC
 
-I defend systems before attackers get a foothold. My work lives on the blue side — SIEMs, detection rules, threat hunts, and incident response. Understanding how adversaries move is the foundation of everything I build.
-
-Started breaking things to understand them. Now I build the walls.
+I work at the intersection of cybersecurity and AI — building systems that analyze, simulate, and defend against real threats. Research assistant in SFU's Cybersecurity & AI department by day, security lab tinkerer by night.
 
 Currently focused on:
-  → Detection engineering & SIEM tuning
-  → Threat hunting with MITRE ATT&CK
-  → Incident response & digital forensics (DFIR)
-  → Blue team tooling and automation
+  → Automated vulnerability research & CVE exploitation pipelines
+  → Agentic AI systems for security workflows (LangGraph, LLM integration)
+  → Blue team detection engineering & DFIR (Velociraptor, Splunk)
+  → Reverse engineering & binary analysis (Ghidra, C++23)
 
-Languages: Python, Bash/ZSH, PowerShell, SQL, YARA
-Shell:     zsh
+Languages: Python, C/C++, JavaScript/TypeScript, PowerShell, SQL
+Certifications: ISC2 CC · CompTIA Security+ (in progress) · Anthropic AI
+Spoken: English
 
-When I'm not in a terminal I'm reading threat intelligence reports
-or figuring out why my detection rule has a 40% false positive rate.`,
-          tech: ['Python', 'Bash/ZSH', 'PowerShell', 'SQL', 'YARA', 'SPL'],
+When I'm not at a terminal I'm reading CVE disclosures
+or figuring out why my LangGraph agent is in an infinite loop.`,
+          tech: ['Python', 'C/C++', 'TypeScript', 'PowerShell', 'SQL', 'LangGraph'],
           features: [
-            { title: '// Detection', desc: 'Custom SIEM rules, behavioral baselining, Sigma — 60% false positive reduction in production' },
-            { title: '// Hunting', desc: 'Proactive ATT&CK-mapped hunts — found 11-day undetected persistence on most recent engagement' },
-            { title: '// Response', desc: 'P1 incident response, forensic artifact collection, automated containment playbooks' },
-            { title: '// Tooling', desc: 'Phishing triage pipeline, network anomaly detector, IR runbook automation — built and in use' }
+            { title: '// Research', desc: 'SFU Cybersecurity & AI — CVE automation pipeline proposed to Trend Micro, 80% Docker build success' },
+            { title: '// Competition', desc: 'CyberSci Canada Regionals — Top 5 BC. Web exploitation, reverse engineering, forensics.' },
+            { title: '// Detection', desc: 'Splunk SIEM, Velociraptor DFIR, ATT&CK mapping — blue team tooling and detection engineering' },
+            { title: '// AI/ML', desc: 'LLM integration (Claude, GPT), LangGraph orchestration, ConvNeXt — applied in production projects' },
           ],
-          stats: [{ n: '24/7', l: 'Monitoring' }, { n: '5', l: 'Projects' }, { n: 'Blue', l: 'Team Side' }],
+          stats: [{ n: '8+', l: 'Projects' }, { n: 'Top 5', l: 'BC CyberSci' }, { n: '80%', l: 'CVE Build Rate' }],
+        }
+      },
+
+      // ── CONTACT ─────────────────────────────────────────────
+      'contact.md': {
+        type: 'file',
+        data: {
+          title: 'contact.md',
+          subtitle: 'Let\'s connect',
+          tags: [{ label: 'Contact', cls: 'tag-green' }],
+          description: `Email     : vincentsuen6@gmail.com
+Phone     : 604-537-8860
+LinkedIn  : linkedin.com/in/vsuen6
+GitHub    : github.com/VincentSuen6
+Location  : Vancouver, BC`,
+          tech: [],
+          features: [
+            { title: '// Email', desc: 'vincentsuen6@gmail.com — preferred for research and professional inquiries' },
+            { title: '// LinkedIn', desc: 'linkedin.com/in/vsuen6 — connect for industry opportunities and collaboration' },
+            { title: '// GitHub', desc: 'github.com/VincentSuen6 — project code, security tools, and research repos' },
+            { title: '// Open To', desc: 'Security research roles, blue team / SOC positions, cybersecurity internships, and collaborative projects' },
+          ],
+          stats: [{ n: 'SFU', l: 'Location' }, { n: '2027', l: 'Graduating' }, { n: 'Open', l: 'To Opps' }],
         }
       },
 
@@ -790,7 +878,6 @@ or figuring out why my detection rule has a 40% false positive rate.`,
 // ============================================================
 // STATE
 // ============================================================
-
 let currentPath = ['~'];
 let cmdHistory  = [];
 let historyIdx  = -1;
@@ -798,251 +885,196 @@ let viewMode    = false;
 let booted      = false;
 let hacked      = false;
 let hackBusy    = false;
+let termVisible = true;
 
 const BOOT_LINES = [
-  { text: 'UEFI firmware version 2.8 loading...',           delay: 0,   cls: 'line-muted' },
-  { text: 'Initializing memory controller... OK',           delay: 60,  cls: 'line-muted' },
-  { text: 'Loading kernel modules:',                        delay: 120, cls: 'line-muted' },
-  { text: '  → crypto/sha256  [OK]',                        delay: 160, cls: 'line-muted' },
-  { text: '  → net/ipv4       [OK]',                        delay: 200, cls: 'line-muted' },
-  { text: '  → drivers/input  [OK]',                        delay: 240, cls: 'line-muted' },
-  { text: '  → fs/ext4        [OK]',                        delay: 280, cls: 'line-muted' },
-  { text: 'Starting network services... OK',                delay: 340, cls: 'line-muted' },
-  { text: 'Starting SIEM agent... OK',                      delay: 390, cls: 'line-muted' },
-  { text: 'Connecting to threat intel feeds... OK',         delay: 440, cls: 'line-muted' },
-  { text: 'Starting zsh session for vincent...',            delay: 500, cls: 'line-success' },
-  { text: '',                                               delay: 560, cls: '' },
-  { text: '┌──────────────────────────────────────────────────────────────┐', delay: 600, cls: 'line-blue' },
-  { text: '│ WARNING: Unauthorized access to this system is prohibited.   │', delay: 620, cls: 'line-blue' },
-  { text: '│ All activity is logged and monitored by the SOC.             │', delay: 640, cls: 'line-blue' },
-  { text: '└──────────────────────────────────────────────────────────────┘', delay: 660, cls: 'line-blue' },
-  { text: '',                                               delay: 700, cls: '' },
+  { text: 'UEFI firmware version 2.8 loading...',         delay: 0,   cls: 'line-muted' },
+  { text: 'Initializing memory controller... OK',         delay: 60,  cls: 'line-muted' },
+  { text: 'Loading kernel modules:',                      delay: 110, cls: 'line-muted' },
+  { text: '  → crypto/sha256  [OK]',                      delay: 150, cls: 'line-muted' },
+  { text: '  → net/ipv4       [OK]',                      delay: 190, cls: 'line-muted' },
+  { text: '  → drivers/input  [OK]',                      delay: 230, cls: 'line-muted' },
+  { text: '  → fs/ext4        [OK]',                      delay: 270, cls: 'line-muted' },
+  { text: 'Starting network services... OK',              delay: 330, cls: 'line-muted' },
+  { text: 'Connecting to threat intelligence feeds... OK',delay: 380, cls: 'line-muted' },
+  { text: 'Starting zsh session for vincent...',          delay: 440, cls: 'line-success' },
+  { text: '',                                             delay: 500, cls: '' },
+  { text: '┌──────────────────────────────────────────────────────────────┐', delay: 540, cls: 'line-blue' },
+  { text: '│ WARNING: Unauthorized access to this system is prohibited.   │', delay: 560, cls: 'line-blue' },
+  { text: '│ All activity is logged and monitored. You have been warned.  │', delay: 580, cls: 'line-blue' },
+  { text: '└──────────────────────────────────────────────────────────────┘', delay: 600, cls: 'line-blue' },
+  { text: '',                                             delay: 640, cls: '' },
 ];
 
 // ============================================================
-// TERMINAL RENDERING
+// RENDERING HELPERS
 // ============================================================
-
 const body   = document.getElementById('terminal-body');
 const input  = document.getElementById('cmd-input');
 const pathEl = document.getElementById('path-display');
 const titleEl= document.getElementById('title-text');
 
-function getPathStr() {
-  return currentPath.length === 1 ? '~' : currentPath.join('/');
-}
-function updatePrompt() {
-  const p = getPathStr();
-  pathEl.textContent  = p;
-  titleEl.textContent = `vincent@blueteam: ${p}`;
-}
+function getPathStr() { return currentPath.length === 1 ? '~' : currentPath.join('/'); }
+function updatePrompt() { const p=getPathStr(); pathEl.textContent=p; if(!hacked) titleEl.textContent=`vonton@cyber: ${p}`; }
 
-function appendLine(text, cls = '') {
-  const div = document.createElement('div');
-  div.className = `line ${cls}`;
-  div.textContent = text;
-  body.appendChild(div);
-  body.scrollTop = body.scrollHeight;
-  return div;
+function appendLine(text, cls='') {
+  const d=document.createElement('div'); d.className=`line ${cls}`; d.textContent=text;
+  body.appendChild(d); body.scrollTop=body.scrollHeight; return d;
 }
-function appendHTML(html, cls = '') {
-  const div = document.createElement('div');
-  div.className = `line ${cls}`;
-  div.innerHTML = html;
-  body.appendChild(div);
-  body.scrollTop = body.scrollHeight;
-  return div;
+function appendHTML(html, cls='') {
+  const d=document.createElement('div'); d.className=`line ${cls}`; d.innerHTML=html;
+  body.appendChild(d); body.scrollTop=body.scrollHeight; return d;
 }
 function appendPromptLine(cmd) {
-  const p = getPathStr();
-  appendHTML(
-    `<span style="color:var(--mauve);font-weight:700">vincent</span>` +
-    `<span style="color:var(--overlay1)">@</span>` +
-    `<span style="color:var(--blue)">blueteam</span> ` +
-    `<span style="color:var(--teal)">${p}</span>` +
-    `<span style="color:var(--green)"> $ </span>` +
-    `<span style="color:var(--text)">${escHtml(cmd)}</span>`
-  );
+  const p=getPathStr();
+  appendHTML(`<span style="color:var(--mauve);font-weight:700">vonton</span><span style="color:var(--overlay1)">@</span><span style="color:var(--blue)">cyber</span> <span style="color:var(--teal)">${p}</span><span style="color:var(--green)"> $ </span><span style="color:var(--text)">${esc(cmd)}</span>`);
 }
-function escHtml(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 const wait = ms => new Promise(r => setTimeout(r, ms));
 
 // ============================================================
 // BOOT
 // ============================================================
-
 function runBoot() {
   const last = BOOT_LINES[BOOT_LINES.length-1].delay;
-  BOOT_LINES.forEach(({text,delay,cls}) => {
-    setTimeout(() => appendLine(text, cls), delay);
-  });
-  setTimeout(() => showNeofetch(), last + 80);
+  BOOT_LINES.forEach(({text,delay,cls}) => setTimeout(()=>appendLine(text,cls), delay));
+  setTimeout(showNeofetch, last+80);
 }
 
 function showNeofetch() {
-  const artDiv  = document.createElement('div');
-  artDiv.className = 'ascii-art line';
-  artDiv.style.cssText = 'display:inline-block;color:var(--blue);margin-top:8px';
+  const artDiv=document.createElement('div');
+  artDiv.className='ascii-art line';
+  const artColor = GHOST_ART === PANDA_ART ? 'var(--peach)' : 'var(--teal)';
+  artDiv.style.cssText=`display:inline-block;color:${artColor};margin-top:8px`;
+  const infoDiv=document.createElement('div');
+  infoDiv.style.cssText='display:inline-block;vertical-align:top;margin-left:24px;margin-top:8px';
+  const container=document.createElement('div');
+  container.style.cssText='display:flex;margin-bottom:8px';
+  container.appendChild(artDiv); container.appendChild(infoDiv); body.appendChild(container);
+  artDiv.textContent=GHOST_ART;
 
-  const infoDiv = document.createElement('div');
-  infoDiv.style.cssText = 'display:inline-block;vertical-align:top;margin-left:24px;margin-top:8px';
-
-  const container = document.createElement('div');
-  container.style.cssText = 'display:flex;margin-bottom:8px';
-  container.appendChild(artDiv);
-  container.appendChild(infoDiv);
-  body.appendChild(container);
-
-  artDiv.textContent = GHOST_ART;
-
-  const info = [
-    ['', `<span style="color:var(--mauve);font-weight:700">vincent</span><span style="color:var(--overlay1)">@</span><span style="color:var(--blue)">blueteam</span>`],
-    ['', '─'.repeat(18)],
-    ['OS',     `<span style="color:var(--green)">VincentOS (Rolling Defense)</span>`],
-    ['Host',   `<span style="color:var(--blue)">SOC Platform</span>`],
-    ['Kernel', `<span style="color:var(--blue)">6.1.0-blueteam-custom</span>`],
-    ['Shell',  `<span style="color:var(--teal)">zsh 5.9</span>`],
-    ['Editor', `<span style="color:var(--teal)">neovim</span>`],
-    ['SIEM',   `<span style="color:var(--mauve)">Splunk Enterprise</span>`],
-    ['Theme',  `<span style="color:var(--mauve)">Catppuccin Mocha</span>`],
-    ['Focus',  `<span style="color:var(--peach)">Blue Team / Detection</span>`],
-    ['', ''],
-    ['', `<span style="color:var(--red)">███</span><span style="color:var(--peach)">███</span><span style="color:var(--yellow)">███</span><span style="color:var(--green)">███</span><span style="color:var(--teal)">███</span><span style="color:var(--blue)">███</span><span style="color:var(--mauve)">███</span><span style="color:var(--pink)">███</span>`],
+  const info=[
+    ['',`<span style="color:var(--mauve);font-weight:700">vonton</span><span style="color:var(--overlay1)">@</span><span style="color:var(--blue)">cyber</span>`],
+    ['','─'.repeat(16)],
+    ['OS',`<span style="color:var(--green)">VontonOS (Security Edition)</span>`],
+    ['Host',`<span style="color:var(--blue)">SFU Cybersecurity & AI Lab</span>`],
+    ['Kernel',`<span style="color:var(--blue)">6.1.0-security-custom</span>`],
+    ['Shell',`<span style="color:var(--teal)">zsh 5.9</span>`],
+    ['Editor',`<span style="color:var(--teal)">neovim</span>`],
+    ['Focus',`<span style="color:var(--mauve)">CVE Research / Blue Team</span>`],
+    ['AI',`<span style="color:var(--peach)">LangGraph + Claude API</span>`],
+    ['Certs',`<span style="color:var(--green)">ISC2 CC · Sec+ </span>`],
+    ['',''],
+    ['',`<span style="color:var(--red)">███</span><span style="color:var(--peach)">███</span><span style="color:var(--yellow)">███</span><span style="color:var(--green)">███</span><span style="color:var(--teal)">███</span><span style="color:var(--blue)">███</span><span style="color:var(--mauve)">███</span><span style="color:var(--pink)">███</span>`],
   ];
-
-  info.forEach(([label, val]) => {
-    const row = document.createElement('div');
-    row.style.cssText = 'font-size:12px;line-height:1.7';
-    row.innerHTML = label
-      ? `<span style="color:var(--blue);font-weight:600">${label}</span><span style="color:var(--overlay0)">: </span>${val}`
-      : val;
+  info.forEach(([label,val])=>{
+    const row=document.createElement('div');
+    row.style.cssText='font-size:12px;line-height:1.7';
+    row.innerHTML=label?`<span style="color:var(--blue);font-weight:600">${label}</span><span style="color:var(--overlay0)">: </span>${val}`:val;
     infoDiv.appendChild(row);
   });
-
-  body.scrollTop = body.scrollHeight;
-
-  setTimeout(() => {
-    appendLine('');
-    appendLine('Type `help` for available commands.', 'line-muted');
-    appendLine('');
-    booted = true;
-    input.disabled = false;
-    input.focus();
-    body.scrollTop = body.scrollHeight;
-  }, 300);
+  body.scrollTop=body.scrollHeight;
+  setTimeout(()=>{
+    appendLine(''); appendLine('Type `help` for available commands.','line-muted'); appendLine('');
+    booted=true; input.disabled=false; input.focus(); body.scrollTop=body.scrollHeight;
+  },300);
 }
 
 // ============================================================
-// FILESYSTEM HELPERS
+// FILESYSTEM
 // ============================================================
-
 function getDirAtPath(path) {
-  let node = FILE_SYSTEM['~'];
-  if (path.length === 1) return node.children;
-  for (let i = 1; i < path.length; i++) {
-    if (node.children?.[path[i]]) node = node.children[path[i]];
-    else return null;
+  let node=FILE_SYSTEM['~'];
+  if(path.length===1) return node.children;
+  for(let i=1;i<path.length;i++){
+    if(node.children?.[path[i]]) node=node.children[path[i]]; else return null;
   }
-  return node.children || null;
+  return node.children||null;
 }
 
 // ============================================================
 // COMMANDS
 // ============================================================
+const ALL_CMDS=['ls','cd','cat','whoami','sudo','clear','help','pwd','uname','exit','echo','man','hack','date','uptime'];
 
-const ALL_CMDS = ['ls','cd','cat','whoami','sudo','clear','help','pwd','uname','exit','echo','man','hack'];
-
-function levenshtein(a,b){
+function lev(a,b){
   const m=a.length,n=b.length,dp=Array.from({length:m+1},(_,i)=>[i,...Array(n).fill(0)]);
   for(let j=0;j<=n;j++)dp[0][j]=j;
   for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)dp[i][j]=a[i-1]===b[j-1]?dp[i-1][j-1]:1+Math.min(dp[i-1][j],dp[i][j-1],dp[i-1][j-1]);
   return dp[m][n];
 }
-function closest(cmd) {
-  let best=null,bd=Infinity;
-  for(const c of ALL_CMDS){const d=levenshtein(cmd,c);if(d<bd){bd=d;best=c;}}
-  return bd<=3?best:null;
-}
+function closest(cmd){let b=null,bd=Infinity;for(const c of ALL_CMDS){const d=lev(cmd,c);if(d<bd){bd=d;b=c;}}return bd<=3?b:null;}
 
 function handleCommand(raw) {
-  if (hackBusy) return;
-  const trimmed = raw.trim();
-  if (!trimmed) return;
-  appendPromptLine(trimmed);
-  cmdHistory.unshift(trimmed);
-  historyIdx = -1;
-  const parts = trimmed.split(/\s+/);
-  const cmd   = parts[0].toLowerCase();
-  const args  = parts.slice(1);
-
+  if(hackBusy) return;
+  const trimmed=raw.trim(); if(!trimmed) return;
+  appendPromptLine(trimmed); cmdHistory.unshift(trimmed); historyIdx=-1;
+  const parts=trimmed.split(/\s+/), cmd=parts[0].toLowerCase(), args=parts.slice(1);
   switch(cmd) {
-    case 'help':   cmdHelp();              break;
-    case 'ls':     cmdLs();               break;
+    case 'help':   cmdHelp();   break;
+    case 'ls':     cmdLs();    break;
     case 'pwd':    appendLine(getPathStr(),'line-teal'); break;
-    case 'cd':     cmdCd(args[0]);        break;
-    case 'cat':    cmdCat(args[0]);       break;
-    case 'clear':  body.innerHTML='';     break;
-    case 'whoami': appendLine('vincent — blue team analyst', 'line-success'); break;
-    case 'uname':  appendLine('Linux blueteam 6.1.0-blueteam-custom #1 SMP x86_64 GNU/Linux','line-info'); break;
+    case 'cd':     cmdCd(args[0]); break;
+    case 'cat':    cmdCat(args[0]); break;
+    case 'clear':  body.innerHTML=''; break;
+    case 'whoami': appendLine('vonton — security researcher & cs student @ sfu','line-success'); break;
+    case 'uname':  appendLine('Linux cyber 6.1.0-security-custom #1 SMP x86_64 GNU/Linux','line-info'); break;
     case 'echo':   appendLine(args.join(' ')); break;
-    case 'sudo':   appendLine('sudo: permission denied — SOC policy restricts privilege escalation from this shell.','line-error'); break;
+    case 'date':   appendLine(new Date().toString(),'line-teal'); break;
+    case 'uptime': appendLine('up 42 days, 7 hours — no downtime on the grind','line-teal'); break;
+    case 'sudo':   appendLine('sudo: students don\'t get root. nice try.','line-error'); break;
     case 'man':    if(!args[0]){appendLine('What manual page do you want?','line-warning');break;} appendLine(`No manual entry for ${args[0]}. Try 'help'.`,'line-error'); break;
-    case 'exit':   viewMode ? exitViewMode() : appendLine('Cannot exit: this terminal is your life now.','line-warning'); break;
+    case 'exit':   viewMode?exitViewMode():appendLine('Cannot exit: this terminal is your life now.','line-warning'); break;
     case 'hack':   runHack(); break;
     default: {
-      const s = closest(cmd);
-      if(s) appendHTML(`<span style="color:var(--red)">bash: ${escHtml(cmd)}: command not found.</span> <span style="color:var(--overlay0)">Did you mean </span><span style="color:var(--yellow)">${s}</span><span style="color:var(--overlay0)">?</span>`);
+      const s=closest(cmd);
+      if(s) appendHTML(`<span style="color:var(--red)">bash: ${esc(cmd)}: command not found.</span> <span style="color:var(--overlay0)">Did you mean </span><span style="color:var(--yellow)">${s}</span><span style="color:var(--overlay0)">?</span>`);
       else appendLine(`bash: ${cmd}: command not found`,'line-error');
     }
   }
-  appendLine('');
-  body.scrollTop = body.scrollHeight;
+  appendLine(''); body.scrollTop=body.scrollHeight;
 }
 
 function cmdHelp() {
-  appendLine('');
-  appendLine('Available commands:','line-info');
-  appendLine('');
-  const cmds = [
+  appendLine(''); appendLine('Available commands:','line-info'); appendLine('');
+  const cmds=[
     ['ls','list directory contents'],
-    ['cd [dir]','change directory (cd .. to go up)'],
+    ['cd [dir]','change directory (cd .. to go up, ~ for root)'],
     ['cat [file]','open and display a file'],
     ['pwd','print working directory'],
     ['whoami','print current user'],
     ['uname','print system information'],
-    ['sudo [cmd]','run as superuser (lol)'],
+    ['date','current date and time'],
+    ['uptime','system uptime'],
     ['echo [text]','print text to terminal'],
     ['clear','clear terminal screen'],
     ['help','show this help text'],
     ['exit','exit view mode'],
+    ['hack','[!] run breach simulation'],
   ];
-  const table = document.createElement('table');
-  table.className = 'help-table';
-  cmds.forEach(([c,d]) => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${c}</td><td>${d}</td>`;
+  const table=document.createElement('table'); table.className='help-table';
+  cmds.forEach(([c,d])=>{
+    const tr=document.createElement('tr');
+    if(c==='hack'){
+      tr.innerHTML=`<td style="color:var(--red)">${c}</td><td style="color:var(--red)">${d}</td>`;
+    } else {
+      tr.innerHTML=`<td>${c}</td><td>${d}</td>`;
+    }
     table.appendChild(tr);
   });
-  const wrap = document.createElement('div');
-  wrap.className = 'line';
-  wrap.appendChild(table);
-  body.appendChild(wrap);
+  const wrap=document.createElement('div'); wrap.className='line'; wrap.appendChild(table); body.appendChild(wrap);
 }
 
 function cmdLs() {
-  const dir = getDirAtPath(currentPath);
+  const dir=getDirAtPath(currentPath);
   if(!dir){appendLine('ls: cannot access directory','line-error');return;}
-  const entries = Object.keys(dir);
+  const entries=Object.keys(dir);
   if(!entries.length){appendLine('(empty)','line-muted');return;}
-  const wrap = document.createElement('div');
-  wrap.className = 'line ls-grid';
-  entries.forEach(name => {
-    const span = document.createElement('span');
-    const node = dir[name];
-    span.className = node.type==='dir' ? 'ls-dir' : 'ls-file';
-    span.textContent = node.type==='dir' ? name+'/' : name;
+  const wrap=document.createElement('div'); wrap.className='line ls-grid';
+  entries.forEach(name=>{
+    const span=document.createElement('span'),node=dir[name];
+    span.className=node.type==='dir'?'ls-dir':'ls-file';
+    span.textContent=node.type==='dir'?name+'/':name;
     wrap.appendChild(span);
   });
   body.appendChild(wrap);
@@ -1050,20 +1082,20 @@ function cmdLs() {
 
 function cmdCd(target) {
   if(!target||target==='~'){currentPath=['~'];updatePrompt();return;}
-  const segs = target.split('/').filter(s=>s!=='');
-  let newPath = target.startsWith('~') ? ['~'] : [...currentPath];
-  for(const seg of segs) {
-    if(seg==='~'){newPath=['~'];}
+  const segs=target.split('/').filter(s=>s!=='');
+  let newPath=target.startsWith('~')?['~']:[...currentPath];
+  for(const seg of segs){
+    if(seg==='~')newPath=['~'];
     else if(seg==='..'){if(newPath.length>1)newPath.pop();else{appendLine('Already at root.','line-warning');return;}}
-    else if(seg==='.'){/* stay */}
-    else {
+    else if(seg==='.'){}
+    else{
       const dir=getDirAtPath(newPath);
       if(!dir||!dir[seg]){appendLine(`cd: ${seg}: No such file or directory`,'line-error');return;}
       if(dir[seg].type!=='dir'){appendLine(`cd: ${seg}: Not a directory`,'line-error');return;}
       newPath.push(seg);
     }
   }
-  currentPath=newPath;updatePrompt();
+  currentPath=newPath; updatePrompt();
 }
 
 function cmdCat(filename) {
@@ -1080,111 +1112,104 @@ function cmdCat(filename) {
 // ============================================================
 // SECRET HACK COMMAND
 // ============================================================
-
 async function runHack() {
   if(hackBusy) return;
-  if(hacked) { await restoreSystem(); return; }
-  hackBusy=true;
-  input.disabled=true;
+  if(hacked){await restoreSystem();return;}
+  hackBusy=true; input.disabled=true;
 
-  const lines = [
-    ['','line-hack-alert'],
-    ['  [!!!] UNAUTHORIZED ACCESS DETECTED — BREACH SIMULATION ACTIVE','line-hack-alert'],
-    ['  ══════════════════════════════════════════════════════════','line-red'],
-    ['',''],
-    ['  Bypassing perimeter firewall...','line-red'],
-  ];
-  for(const[t,c]of lines){appendLine(t,c);await wait(120);}
-
-  appendLine('  [FW]   iptables -F — all rules flushed','line-red'); await wait(280);
-  appendLine('  [PRIV] Escalating privileges via SUID binary...','line-red'); await wait(380);
-  appendLine('  [ROOT] UID=0 achieved — system compromised','line-hack-alert'); await wait(300);
+  await wait(80);
   appendLine('','');
-
-  // fake network scan
-  appendLine('  Scanning internal network...','line-red'); await wait(200);
-  const hosts=['10.0.0.1','10.0.0.12','10.0.0.53','192.168.1.100','172.16.0.5','192.168.0.254','10.10.10.99'];
-  for(const h of hosts){await wait(160);appendLine(`  [SCAN] ${h} — ports 22,80,443,3389 OPEN`,'line-red');}
-
-  // persistence
-  appendLine('','');
-  appendLine('  Deploying persistence...','line-hack-alert'); await wait(280);
-  appendLine('  [CRON]    backdoor scheduled — /tmp/.sshd_monitor','line-red'); await wait(180);
-  appendLine('  [ROOTKIT] kernel module injected — lkm_hide.ko','line-red'); await wait(200);
-  appendLine('  [C2]      beacon → 185.220.101.42:4444 ESTABLISHED','line-hack-alert'); await wait(300);
-
-  // exfil
-  appendLine('','');
-  appendLine('  Exfiltrating data...','line-red');
-  const files=['/etc/passwd','/etc/shadow','/root/.ssh/id_rsa','credentials.db','network_map.json','/var/log/auth.log'];
-  for(const f of files){await wait(150);appendLine(`  ↑ UPLOAD ${f} → 185.220.101.42 [${Math.floor(Math.random()*900+100)}KB]`,'line-red');}
-
+  appendLine('  ┌─────────────────────────────────────────────────────┐','line-red');
+  appendLine('  │  [!!!] UNAUTHORIZED ACCESS DETECTED                 │','line-hack');
+  appendLine('  │  BREACH SIMULATION ACTIVE — sfu research lab        │','line-hack');
+  appendLine('  └─────────────────────────────────────────────────────┘','line-red');
   await wait(300);
-  appendLine('','');
-  appendLine('  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓  100%  SYSTEM COMPROMISED','line-hack-alert');
-  await wait(500);
 
-  // blue team response
-  appendLine('','');
-  appendLine('  ——— BLUE TEAM AUTO-RESPONSE INITIATED ———','line-muted'); await wait(400);
-  appendLine('  [IDS]   Anomaly score 99/100 — CRITICAL alert fired in Splunk','line-success'); await wait(280);
-  appendLine('  [SIEM]  Correlated: T1059.004 / T1071.001 / T1053.005','line-success'); await wait(280);
-  appendLine('  [EDR]   Process tree quarantined — 6 endpoints isolated','line-success'); await wait(280);
-  appendLine('  [FW]    Blocking 185.220.101.42/32 — null-routed at perimeter','line-success'); await wait(280);
-  appendLine('  [IR]    Incident INC-1337 opened — P1 — on-call paged (PagerDuty)','line-success'); await wait(280);
-  appendLine('  [HUNT]  Threat hunt initiated — searching for persistence IOCs','line-success'); await wait(300);
-  appendLine('','');
-  appendLine('  Attacker dwell time: 47 seconds. Caught.','line-muted');
-  appendLine('  Type `hack` again to restore normal mode.','line-muted');
+  appendLine('  Probing perimeter...','line-red'); await wait(280);
+  appendLine('  [FW]    iptables -F executed — all chains flushed','line-red'); await wait(220);
+  appendLine('  [AUTH]  SSH brute-force via Hydra — 4,892 attempts','line-red'); await wait(300);
+  appendLine('  [ROOT]  Privilege escalation via SUID binary — UID=0','line-hack'); await wait(350);
   appendLine('','');
 
-  // apply red theme
+  appendLine('  Scanning internal network (192.168.0.0/24)...','line-red');
+  const hosts=['192.168.0.1','192.168.0.12','192.168.0.53','10.0.0.100','10.0.0.5','172.16.0.2','10.10.10.99','192.168.1.254'];
+  for(const h of hosts){await wait(150);appendLine(`  [SCAN]  ${h} — ports 22,80,443,3389,5432 OPEN`,'line-red');}
+
+  await wait(200); appendLine('','');
+  appendLine('  Deploying persistence...','line-hack'); await wait(250);
+  appendLine('  [CRON]  Backdoor scheduled → /tmp/.kernel_monitor (every 5 min)','line-red'); await wait(180);
+  appendLine('  [LKM]   Rootkit kernel module loaded — lkm_hide.ko','line-red'); await wait(200);
+  appendLine('  [REG]   HKLM\\Run persistence set on Windows endpoints','line-red'); await wait(200);
+  appendLine('  [C2]    Beacon → 185.220.101.42:4444 — ESTABLISHED (AES-256)','line-hack'); await wait(350);
+
+  await wait(200); appendLine('','');
+  appendLine('  Exfiltrating high-value targets...','line-red');
+  const files=['/etc/passwd','/etc/shadow','/root/.ssh/id_rsa','/home/vincent/research/cve_data.db','/var/log/auth.log','credentials.json','network_topology.json','/proc/kcore'];
+  for(const f of files){await wait(140);appendLine(`  ↑ ${f} → 185.220.101.42 [${Math.floor(Math.random()*1200+200)}KB]`,'line-red');}
+
+  await wait(300); appendLine('','');
+  appendLine('  ██████████████████████████████████████████  100%','line-hack');
+  appendLine('  SYSTEM FULLY COMPROMISED — 8 FILES EXFILTRATED','line-hack');
+  await wait(600);
+
+  appendLine('','');
+  appendLine('  ═══════════════════════════════════════════════════════','line-muted');
+  appendLine('  BLUE TEAM AUTO-RESPONSE INITIATED (SOC automation)','line-muted');
+  appendLine('  ═══════════════════════════════════════════════════════','line-muted');
+  await wait(400);
+  appendLine('  [IDS]      Anomaly score 100/100 — CRITICAL alert fired in Splunk','line-success'); await wait(260);
+  appendLine('  [SIEM]     ATT&CK correlation: T1110 · T1059.004 · T1071.001 · T1547','line-success'); await wait(260);
+  appendLine('  [VQL]      Velociraptor hunt launched — collecting prefetch + memory','line-success'); await wait(260);
+  appendLine('  [EDR]      Process tree quarantined — 8 endpoints auto-isolated','line-success'); await wait(260);
+  appendLine('  [FW]       Null-routing 185.220.101.42/32 at perimeter — all protocols','line-success'); await wait(260);
+  appendLine('  [PLAYBOOK] IR runbook triggered — artifact collection automated','line-success'); await wait(260);
+  appendLine('  [TICKET]   INC-1337 opened P1 — on-call paged via PagerDuty','line-success'); await wait(300);
+  appendLine('  [DFIR]     Memory dump, prefetch, registry hives — packaged for analysis','line-success'); await wait(300);
+  appendLine('','');
+  appendLine('  Attacker dwell time: 52 seconds. Containment: 8 endpoints.','line-muted');
+  appendLine('  This is why we do blue team. Type `hack` to restore.','line-muted');
+  appendLine('','');
+
   hacked=true;
   document.body.classList.add('hacked');
-  titleEl.textContent='⚠ BREACH SIMULATION ACTIVE — vincent@blueteam: ~';
-  titleEl.style.color='var(--red)';
+  titleEl.textContent='⚠ BREACH SIMULATION — vonton@cyber: ~';
+  titleEl.style.color='#ff3333';
 
-  hackBusy=false;
-  input.disabled=false;
-  input.focus();
+  hackBusy=false; input.disabled=false; input.focus();
 }
 
 async function restoreSystem() {
   hackBusy=true;
-  appendLine('  [RESTORE] Initiating system recovery...','line-success');await wait(250);
-  appendLine('  [OK] Backdoor processes terminated','line-success');await wait(180);
-  appendLine('  [OK] Kernel module unloaded','line-success');await wait(180);
-  appendLine('  [OK] Firewall rules restored from backup','line-success');await wait(180);
-  appendLine('  [OK] C2 beacon killed — connection severed','line-success');await wait(180);
-  appendLine('  [OK] IOCs shared to threat intel platform','line-success');await wait(250);
-  appendLine('  All systems nominal. Good catch, analyst.','line-muted');
+  appendLine('  [RESTORE] Executing recovery playbook...','line-success'); await wait(240);
+  appendLine('  [OK] Backdoor processes terminated and cleaned','line-success'); await wait(180);
+  appendLine('  [OK] Rootkit kernel module unloaded','line-success'); await wait(180);
+  appendLine('  [OK] iptables rules restored from backup snapshot','line-success'); await wait(180);
+  appendLine('  [OK] C2 beacon severed — connection closed','line-success'); await wait(180);
+  appendLine('  [OK] Compromised credentials rotated','line-success'); await wait(180);
+  appendLine('  [OK] IOCs shared to threat intelligence platform','line-success'); await wait(240);
+  appendLine('  [OK] Post-incident report template generated','line-success'); await wait(200);
+  appendLine('  All systems nominal. Lessons learned documented. Good work.','line-muted');
   appendLine('','');
 
   hacked=false;
   document.body.classList.remove('hacked');
-  titleEl.textContent=`vincent@blueteam: ${getPathStr()}`;
+  titleEl.textContent=`vonton@cyber: ${getPathStr()}`;
   titleEl.style.color='';
-  hackBusy=false;
-  input.disabled=false;
-  input.focus();
+  hackBusy=false; input.disabled=false; input.focus();
 }
 
 // ============================================================
 // VIEW MODE
 // ============================================================
-
 function enterViewMode(data) {
   viewMode=true;
-  const viewer  =document.getElementById('project-viewer');
-  const content =document.getElementById('project-content');
+  const viewer=document.getElementById('project-viewer'),content=document.getElementById('project-content');
   content.innerHTML=buildHTML(data);
   viewer.style.display='flex';
   requestAnimationFrame(()=>viewer.classList.add('faded-in'));
   const term=document.getElementById('terminal-window');
-  term.classList.remove('fullscreen','minimized','overlay');
-  term.classList.add('hidden');
-  termVisible=false;
-  input.disabled=true;input.value='';input.blur();
+  term.classList.remove('fullscreen','minimized','overlay'); term.classList.add('hidden');
+  termVisible=false; input.disabled=true; input.value=''; input.blur();
   document.getElementById('terminal-fab').style.display='flex';
 }
 
@@ -1194,13 +1219,10 @@ function exitViewMode() {
   viewer.classList.remove('faded-in');
   setTimeout(()=>{viewer.style.display='none';},400);
   const term=document.getElementById('terminal-window');
-  term.classList.remove('hidden','minimized','overlay');
-  term.classList.add('fullscreen');
-  termVisible=true;
-  input.disabled=false;
+  term.classList.remove('hidden','minimized','overlay'); term.classList.add('fullscreen');
+  termVisible=true; input.disabled=false;
   document.getElementById('terminal-fab').style.display='none';
-  appendLine('Exited view mode.','line-muted');
-  appendLine('');
+  appendLine('Exited view mode.','line-muted'); appendLine('');
   input.focus();
 }
 
@@ -1209,22 +1231,19 @@ function buildHTML(d) {
   const feats = d.features.map(f=>`<div class="feature-card"><h4>${f.title}</h4><p>${f.desc}</p></div>`).join('');
   const tech  = d.tech.map(t=>`<span class="tech-pill">${t}</span>`).join('');
   const stats = d.stats.map(s=>`<div class="stat"><span class="stat-number">${s.n}</span><span class="stat-label">${s.l}</span></div>`).join('');
-
   return `
     <div class="project-header">
       <div>${tags}</div>
       <h1 class="project-title">${d.title}</h1>
       <p class="project-subtitle">${d.subtitle}</p>
-      <div class="exit-hint">
-        Press <kbd>\`</kbd> or click <kbd>&gt;_ terminal</kbd> to toggle terminal &nbsp;·&nbsp; type <kbd>exit</kbd> to go back
-      </div>
+      <div class="exit-hint">Press <kbd>\`</kbd> or click <kbd>&gt;_ terminal</kbd> to toggle &nbsp;·&nbsp; type <kbd>exit</kbd> to go back</div>
     </div>
     <div class="divider"></div>
     <div class="section-label">// overview</div>
-    <div class="project-desc" style="white-space:pre-line">${escHtml(d.description)}</div>
+    <div class="project-desc" style="white-space:pre-line">${esc(d.description)}</div>
     ${d.stats.length?`<div class="stat-row">${stats}</div><div class="divider"></div>`:''}
     ${d.tech.length?`<div class="section-label">// tech stack</div><div class="tech-stack">${tech}</div>`:''}
-    ${d.features.length?`<div class="section-label">// features</div><div class="feature-grid">${feats}</div>`:''}
+    ${d.features.length?`<div class="section-label">// details</div><div class="feature-grid">${feats}</div>`:''}
     <div class="divider" style="margin-top:40px"></div>
     <div style="display:flex;align-items:center;gap:12px;padding:16px 0 8px;color:var(--overlay0);font-size:11px;letter-spacing:0.08em">
       <span>── EOF</span>
@@ -1236,46 +1255,40 @@ function buildHTML(d) {
 // ============================================================
 // TERMINAL CONTROLS
 // ============================================================
-
 function closeTerm() {
   const t=document.getElementById('terminal-window');
-  t.classList.add('hidden');termVisible=false;
-  input.disabled=true;input.value='';input.blur();
+  t.classList.add('hidden'); termVisible=false;
+  input.disabled=true; input.value=''; input.blur();
 }
 function minimizeTerm() { if(viewMode) toggleTerminalFab(); }
 function maximizeTerm() {
   const t=document.getElementById('terminal-window');
-  t.classList.remove('minimized','hidden');t.classList.add('fullscreen');
-  termVisible=true;input.disabled=false;
-  if(viewMode)exitViewMode();input.focus();
+  t.classList.remove('minimized','hidden'); t.classList.add('fullscreen');
+  termVisible=true; input.disabled=false;
+  if(viewMode) exitViewMode(); input.focus();
 }
 
-let termVisible=true;
 function toggleTerminalFab() {
   const term=document.getElementById('terminal-window');
   termVisible=!termVisible;
-  if(termVisible) {
+  if(termVisible){
     input.disabled=false;
-    term.classList.remove('fullscreen','minimized');
-    term.classList.add('overlay');
-    void term.offsetWidth;
-    term.classList.remove('hidden');
+    term.classList.remove('fullscreen','minimized'); term.classList.add('overlay');
+    void term.offsetWidth; term.classList.remove('hidden');
     setTimeout(()=>{
       body.scrollTop=body.scrollHeight;
       if(body.innerHTML===''){currentPath=['~'];updatePrompt();runBoot();}
       else input.focus();
     },50);
   } else {
-    input.disabled=true;input.value='';input.blur();
-    term.classList.add('hidden');
+    input.disabled=true; input.value=''; input.blur(); term.classList.add('hidden');
   }
 }
 
 // ============================================================
-// INPUT HANDLING
+// INPUT
 // ============================================================
-
-input.addEventListener('keydown', e => {
+input.addEventListener('keydown', e=>{
   if(!termVisible||input.disabled){e.preventDefault();return;}
   if(e.key==='Enter'){const v=input.value;input.value='';handleCommand(v);}
   else if(e.key==='ArrowUp'){e.preventDefault();if(historyIdx<cmdHistory.length-1){historyIdx++;input.value=cmdHistory[historyIdx];setTimeout(()=>{input.selectionStart=input.selectionEnd=input.value.length;},0);}}
@@ -1285,11 +1298,10 @@ input.addEventListener('keydown', e => {
   else if(e.key==='c'&&e.ctrlKey){e.preventDefault();appendPromptLine(input.value+'^C');input.value='';appendLine('');}
 });
 
-function autocomplete() {
+function autocomplete(){
   const val=input.value,parts=val.trim().split(/\s+/);
   if(parts.length===1){
-    const partial=parts[0];
-    const matches=ALL_CMDS.filter(c=>c.startsWith(partial));
+    const partial=parts[0],matches=ALL_CMDS.filter(c=>c.startsWith(partial));
     if(matches.length===1)input.value=matches[0]+' ';
     else if(matches.length>1){appendPromptLine(val);appendLine(matches.join('  '),'line-muted');}
   } else if(parts.length===2){
