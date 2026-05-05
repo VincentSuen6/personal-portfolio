@@ -1068,20 +1068,51 @@ function cmdHelp() {
 function cmdLs() {
   const dir=getDirAtPath(currentPath);
   if(!dir){appendLine('ls: cannot access directory','line-error');return;}
-  const entries=Object.keys(dir);
+  const entries=Object.entries(dir);
   if(!entries.length){appendLine('(empty)','line-muted');return;}
-  const wrap=document.createElement('div'); wrap.className='line ls-grid';
-  entries.forEach(name=>{
-    const span=document.createElement('span'),node=dir[name];
-    span.className=node.type==='dir'?'ls-dir':'ls-file';
-    span.textContent=node.type==='dir'?name+'/':name;
-    wrap.appendChild(span);
+  const wrap=document.createElement('div');
+  wrap.className='line';
+  wrap.style.cssText='display:flex;flex-direction:column;gap:3px;margin:2px 0';
+  entries.forEach(([name,node])=>{
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:baseline;gap:16px';
+    if(node.type==='dir'){
+      const count=Object.keys(node.children||{}).length;
+      row.innerHTML=`<span class="ls-dir" style="min-width:220px">${name}/</span><span style="color:var(--overlay0);font-size:11px">${count} item${count!==1?'s':''}</span>`;
+    } else {
+      const sub=node.data?.subtitle||'';
+      const short=sub.length>62?sub.slice(0,62)+'…':sub;
+      row.innerHTML=`<span class="ls-file" style="min-width:220px">${name}</span><span style="color:var(--overlay0);font-size:11px">${short}</span>`;
+    }
+    wrap.appendChild(row);
   });
   body.appendChild(wrap);
+  body.scrollTop=body.scrollHeight;
+}
+
+const DIR_DESC = {
+  '~':'home directory','projects':'security research & engineering',
+  'experience':'research roles & leadership',
+  'skills':'languages · tools · AI/ML · cloud',
+  'education':'degrees & certifications',
+};
+
+function showDirBanner(path) {
+  const dirName=path[path.length-1];
+  const dir=getDirAtPath(path);
+  const count=dir?Object.keys(dir).length:0;
+  const desc=DIR_DESC[dirName]||'';
+  const label=path.length===1?'~':dirName+'/';
+  appendHTML(
+    `<span style="color:var(--mauve)">// entering </span>`+
+    `<span style="color:var(--blue);font-weight:600">${label}</span>`+
+    (count?`<span style="color:var(--overlay0)"> · ${count} item${count!==1?'s':''}</span>`:'') +
+    (desc?`<span style="color:var(--overlay0)"> · ${desc}</span>`:'')
+  );
 }
 
 function cmdCd(target) {
-  if(!target||target==='~'){currentPath=['~'];updatePrompt();return;}
+  if(!target||target==='~'){currentPath=['~'];updatePrompt();showDirBanner(currentPath);cmdLs();return;}
   const segs=target.split('/').filter(s=>s!=='');
   let newPath=target.startsWith('~')?['~']:[...currentPath];
   for(const seg of segs){
@@ -1095,7 +1126,7 @@ function cmdCd(target) {
       newPath.push(seg);
     }
   }
-  currentPath=newPath; updatePrompt();
+  currentPath=newPath; updatePrompt(); showDirBanner(currentPath); cmdLs();
 }
 
 function cmdCat(filename) {
@@ -1226,12 +1257,44 @@ function exitViewMode() {
   input.focus();
 }
 
+const ICON_MAP={
+  'python':'python','c++':'cpp','c++23':'cpp','c / c++':'cpp','c':'c',
+  'javascript':'js','typescript':'ts','java':'java','docker':'docker',
+  'react':'react','react native':'react','firebase':'firebase',
+  'azure':'azure','microsoft azure':'azure','ubuntu':'ubuntu',
+  'linux':'linux','kali linux':'kali','git':'git','powershell':'powershell',
+  'flask':'flask','bash':'bash','std::jthread':'cpp','std::atomic':'cpp',
+};
+
+function getSkillIcons(techList) {
+  const icons=[...new Set(techList.map(t=>ICON_MAP[t.toLowerCase()]).filter(Boolean))].slice(0,8);
+  return icons.length?icons.join(','):null;
+}
+
+function buildHero(d) {
+  if(d.image) return `<div style="border-radius:12px;overflow:hidden;margin-bottom:28px;border:1px solid var(--surface1)"><img src="${d.image}" style="width:100%;display:block;max-height:300px;object-fit:cover" alt="preview"></div>`;
+  const icons=getSkillIcons(d.tech||[]);
+  const iconsHTML=icons?`<img src="https://skillicons.dev/icons?i=${icons}&theme=dark" style="height:42px;opacity:0.9;margin-top:14px" alt="tech stack">`:'';
+  const grads={'tag-red':'135deg,#2a1520,#3d1a25','tag-blue':'135deg,#151a2e,#1a2540','tag-green':'135deg,#152520,#1a3025','tag-mauve':'135deg,#1f1528,#2a1a3d','tag-peach':'135deg,#281e15,#3d2a18','tag-teal':'135deg,#152525,#1a3535','tag-yellow':'135deg,#252215,#3d3418'};
+  const grad=grads[d.tags?.[0]?.cls]||grads['tag-blue'];
+  return `
+    <div style="border-radius:12px;margin-bottom:28px;border:1px solid var(--surface1);overflow:hidden;background:linear-gradient(${grad});padding:28px 32px;position:relative">
+      <div style="position:absolute;inset:0;opacity:0.035;background:repeating-linear-gradient(45deg,#fff 0,#fff 1px,transparent 0,transparent 50%) 0 0/6px 6px"></div>
+      <div style="position:relative">
+        <div style="font-size:10px;color:var(--overlay0);letter-spacing:0.12em;text-transform:uppercase;font-family:'JetBrains Mono',monospace">// tech stack</div>
+        <div style="font-size:17px;font-weight:700;color:var(--text);margin-top:6px">${esc(d.title)}</div>
+        ${iconsHTML}
+      </div>
+    </div>`;
+}
+
 function buildHTML(d) {
   const tags  = d.tags.map(t=>`<span class="project-tag ${t.cls}">${t.label}</span>`).join('');
   const feats = d.features.map(f=>`<div class="feature-card"><h4>${f.title}</h4><p>${f.desc}</p></div>`).join('');
   const tech  = d.tech.map(t=>`<span class="tech-pill">${t}</span>`).join('');
   const stats = d.stats.map(s=>`<div class="stat"><span class="stat-number">${s.n}</span><span class="stat-label">${s.l}</span></div>`).join('');
   return `
+    ${buildHero(d)}
     <div class="project-header">
       <div>${tags}</div>
       <h1 class="project-title">${d.title}</h1>
