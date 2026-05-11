@@ -484,82 +484,59 @@ Parsed and categorized **400+ CVEs** by attack vector, complexity, privileges re
                   ['Rollback System',     'Deterministic', 'Restores checkpoint, applies agent-generated fix, and retries the build'],
                 ],
               },
-              diagram: `graph LR
+              diagram: `graph TD
   S([▶ START]) --> SF
 
-  subgraph SF["① sub_folder"]
-    direction TB
-    SF1["parse_folder<br/>CVE repo scan"]
-    SF2["cre-csv-builder<br/>400+ CVEs tagged"]
-    SF3["language-detect<br/>addingPrompts.py"]
-    SF1 --> SF2 --> SF3
+  subgraph SF["① sub_folder — corpus ingestion"]
+    direction LR
+    SF1["parse_folder<br/>CVE repo scan"] --> SF2["cre-csv-builder<br/>400+ CVEs tagged"] --> SF3["language-detect<br/>addingPrompts.py"]
   end
 
   SF --> PE
 
-  subgraph PE["② poc_engine"]
-    direction TB
-    PE1["doc-builder-agent-2025<br/>PoC scaffold"]
-    PE2["env-setup<br/>build strategy select"]
-    PE1 --> PE2
+  subgraph PE["② poc_engine — scaffold & setup"]
+    direction LR
+    PE1["doc-builder-agent-2025<br/>PoC scaffold"] --> PE2["env-setup<br/>build strategy select"]
   end
 
   PE --> PG
 
-  subgraph PG["③ poc_generation"]
-    direction TB
-    PG1["poc-synthesiser<br/>LLM-generated PoC"]
-    PG2["link-status-check<br/>reference validation"]
-    PG1 --> PG2
+  subgraph PG["③ poc_generation — synthesis"]
+    direction LR
+    PG1["poc-synthesiser<br/>LLM-generated PoC"] --> PG2["link-status-check<br/>reference validation"]
   end
 
   PG --> EP
 
-  subgraph EP["④ extract_and_patch"]
-    direction TB
-    EP1["patch-strategy<br/>diff + apply"]
-    EP2["extra-match<br/>fallback extraction"]
-    EP1 --> EP2
+  subgraph EP["④ extract_and_patch — patching"]
+    direction LR
+    EP1["patch-strategy<br/>diff + apply"] --> EP2["extra-match<br/>fallback extraction"]
   end
 
-  EP --> V
-  EP --> RB
+  EP --> V & RB
 
-  subgraph V["⑤ validation"]
-    direction TB
-    V1["sub-validate-agent-1202<br/>primary assertion"]
-    V2["sub-validate-agent-1203<br/>secondary assertion"]
-    V3["syntax-check<br/>AST lint"]
-    V1 --> V2 --> V3
+  subgraph V["⑤ validation — assertion gates"]
+    direction LR
+    V1["sub-validate-agent-1202<br/>primary assertion"] --> V2["sub-validate-agent-1203<br/>secondary assertion"] --> V3["syntax-check<br/>AST lint"]
   end
 
-  subgraph RB["⑥ rollback"]
-    direction TB
-    RB1["checkpoint-restore<br/>Docker layer state"]
-    RB2["llm-diagnosis<br/>error root cause"]
-    RB3["retry-strategy<br/>patch + rebuild"]
-    RB1 --> RB2 --> RB3
+  subgraph RB["⑥ rollback — LLM recovery"]
+    direction LR
+    RB1["checkpoint-restore<br/>Docker layer state"] --> RB2["llm-diagnosis<br/>error root cause"] --> RB3["retry-strategy<br/>patch + rebuild"]
   end
 
-  V --> BE
-  RB --> BE
+  V & RB --> BE
 
-  subgraph BE["⑦ build_and_exploit"]
-    direction TB
-    BE1["parallel-builder-A<br/>thread 1"]
-    BE2["parallel-builder-B<br/>thread 2"]
-    BE3["dockerfile-optimizer<br/>layer caching"]
-    BE1 & BE2 --> BE3
+  subgraph BE["⑦ build_and_exploit — parallel build"]
+    direction LR
+    BE1["parallel-builder-A<br/>thread 1"] & BE2["parallel-builder-B<br/>thread 2"] --> BE3["dockerfile-optimizer<br/>layer caching"]
   end
 
   BE --> DG
 
-  subgraph DG["⑧ dockerfile_gen"]
-    direction TB
-    DG1["base-image-select<br/>Ubuntu / Alpine / Debian"]
-    DG2["dep-resolver<br/>apt + pip + cargo"]
-    DG3["exploit-capture<br/>CVSS + PoC record"]
-    DG1 --> DG2 --> DG3
+  subgraph DG["⑧ dockerfile_gen — final capture"]
+    direction LR
+    DG1["base-image-select<br/>Ubuntu / Alpine / Debian"] --> DG2["dep-resolver<br/>apt + pip + cargo"] --> DG3["exploit-capture<br/>CVSS + PoC record"]
   end
 
   DG --> E(["✓ PoC Captured — 86% success"])`,
@@ -1454,19 +1431,53 @@ Integrated **Anthropic Claude** for intelligent ride recommendations — accepts
               title: 'Research Assistant',
               subtitle: 'Department of Cybersecurity & AI, SFU · Dec 2025 – Present',
               tags: [{ label: 'Current', cls: 'tag-green' }, { label: 'Research', cls: 'tag-mauve' }, { label: 'SFU', cls: 'tag-blue' }],
-              description: `Research assistant in the SFU Department of Cybersecurity and AI, working on automated vulnerability exploitation and CVE lifecycle management.
+              description: `## Role
 
-Core contribution: identified and resolved critical reliability gaps in the CVE-Genie (2025) framework, specifically its 49% failure rate in complex C++ and Java environments. Engineered a hybrid deterministic-agentic architecture that improved Docker build success from 51% to 80%.
+Research Assistant in **SFU's Department of Cybersecurity & AI**, working on automated vulnerability exploitation and CVE lifecycle management.
 
-Collaborated with faculty mentors to develop an automated pipeline for CVE analysis, exploit simulation, and functional proof-of-concept (PoC) generation. The pipeline was proposed to Trend Micro for accelerating zero-day to n-day lifecycle management — reducing the time between CVE publication and actionable exploit intelligence.`,
+## Core Contribution
+
+Identified and resolved critical reliability gaps in the **CVE-Genie (2025)** framework — specifically its **49% failure rate** in complex C++ and Java build environments. Root cause: static pipelines couldn't handle the non-deterministic edge cases that arise when building diverse exploit environments at scale.
+
+Engineered a **hybrid deterministic-agentic architecture** that improved Docker build success from 51% → **86%** across 400+ CVEs:
+
+- **Deterministic layer** — environment scaffolding, dependency resolution, checkpoint management
+- **Agentic layer** (LangGraph) — handles the non-deterministic edge cases the static pipeline can't anticipate
+
+## Industry Impact
+
+> The pipeline was **proposed to Trend Micro** for integration into their zero-day to n-day lifecycle management workflows — reducing time between CVE publication and actionable exploit intelligence.`,
               tech: ['C++', 'Python', 'Docker', 'LangGraph', 'LLM Integration', 'Agentic Workflows'],
               features: [
-                { title: '// 80% Build Success', desc: 'Fixed 49% failure rate in CVE-Genie — hybrid architecture improved Docker build success to 80%' },
-                { title: '// Trend Micro Proposal', desc: 'Proposed automated CVE pipeline to Trend Micro for zero-day to n-day lifecycle acceleration' },
-                { title: '// Exploit Simulation', desc: 'Automated pipeline for CVE analysis, exploit simulation, and functional PoC generation' },
-                { title: '// Research Collaboration', desc: 'Working directly with faculty mentors in a dedicated cybersecurity AI research environment' },
+                { title: '// 86% Build Success', desc: 'Fixed 49% failure rate in CVE-Genie — hybrid deterministic-agentic architecture, up from 51% baseline' },
+                { title: '// Trend Micro Proposal', desc: 'Pipeline proposed to Trend Micro for zero-day to n-day lifecycle acceleration' },
+                { title: '// LangGraph Orchestration', desc: '8-stage multi-agent pipeline — language detection, PoC synthesis, validation, rollback, parallel build' },
+                { title: '// 400+ CVE Corpus', desc: 'Processed and categorized 400+ CVEs by attack vector, language, complexity, and PoC availability' },
               ],
-              stats: [{ n: '80%', l: 'Build Success' }, { n: 'Dec 2025–', l: 'Timeline' }, { n: 'SFU', l: 'Institution' }],
+              stats: [{ n: '86%', l: 'Build Success' }, { n: '400+', l: 'CVEs Processed' }, { n: 'Dec 2025–', l: 'Timeline' }],
+              steps: [
+                { n: 'Phase 1', title: 'CVE-Genie Audit', desc: 'Analysed the existing CVE-Genie (2025) framework — identified root cause of the 49% failure rate in C++ and Java build environments.' },
+                { n: 'Phase 2', title: 'Architecture Redesign', desc: 'Designed hybrid deterministic-agentic architecture: static scaffolding for known patterns, LangGraph agent for non-deterministic edge cases.' },
+                { n: 'Phase 3', title: 'Language Detector + Rollback', desc: 'Built addingPrompts.py for multi-signal language disambiguation. Implemented checkpoint-based Docker rollback with LLM diagnosis.' },
+                { n: 'Phase 4', title: 'Validation & Scale', desc: 'Added dual validation agents (sub-validate-agent-1202/1203) and ran pipeline against full 400+ CVE corpus — 86% build success.' },
+                { n: 'Phase 5', title: 'Trend Micro Proposal', desc: 'Packaged architecture, benchmark results, and use case analysis into a proposal for Trend Micro zero-day lifecycle integration.' },
+              ],
+              diagram: `graph TD
+  subgraph SFU["SFU CYBERSECURITY & AI LAB"]
+    direction LR
+    FAC["Faculty Mentors<br/>Research Direction"]
+    ME["Vincent Suen<br/>Research Assistant"]
+    FAC --> ME
+  end
+
+  ME -->|"proposal"| TM["Trend Micro<br/>Industry Partner"]
+
+  ME --> PIPE
+
+  subgraph PIPE["CVE EXPLOITATION PIPELINE"]
+    direction LR
+    CVE["CVE Corpus<br/>400+ entries"] --> LANG["Language Detector<br/>addingPrompts.py"] --> LG["LangGraph Agent<br/>8-stage pipeline"] --> OUT["Docker PoC<br/>86% build success"]
+  end`,
             }
           },
 
@@ -1476,19 +1487,57 @@ Collaborated with faculty mentors to develop an automated pipeline for CVE analy
               title: 'CyberSci Canada Regionals',
               subtitle: 'Team Competitor · Top 5 Finish in BC · Sep 2025',
               tags: [{ label: 'Competition', cls: 'tag-red' }, { label: 'Top 5 BC', cls: 'tag-yellow' }, { label: 'CTF', cls: 'tag-teal' }],
-              description: `Competed at CyberSci Canada Regionals, achieving a Top 5 finish in British Columbia. CyberSci is Canada's national university cybersecurity competition, with regional heats feeding into a national championship.
+              description: `## The Competition
 
-The competition spanned red and blue team operations: web exploitation, binary reverse engineering, and digital forensics challenges — all reflecting real SOC incident response scenarios rather than isolated puzzle-style CTF challenges.
+**CyberSci Canada** is Canada's national university cybersecurity competition — regional heats across provinces feed into a national championship. Competed at the BC Regional, achieving a **Top 5 provincial finish**.
 
-Tools applied: Burp Suite for web proxy and vulnerability exploitation, Wireshark for packet capture analysis and network forensics, and Ghidra for binary reverse engineering and static analysis. Findings were documented and response actions coordinated with team members throughout each challenge.`,
+The key distinction from typical CTF competitions: challenges are designed to **mirror real SOC incident response scenarios**, not isolated puzzle-style problems. You're responding to a realistic attack chain, not solving a discrete math puzzle.
+
+## Disciplines
+
+### Web Exploitation
+HTTP interception, injection attacks, and auth bypass using **Burp Suite** as the primary proxy. Identifying and chaining vulnerabilities across multi-step attack flows.
+
+### Binary Reverse Engineering
+**Ghidra** for disassembly and decompilation. x86/x64 static analysis — identifying function logic, control flow, and hidden flags from compiled binaries without source code.
+
+### Digital Forensics
+**Wireshark** for packet capture analysis — reconstructing attack timelines from network traffic. Memory and disk artifact recovery for evidence of compromise.
+
+> The hardest part isn't the technical skill — it's time management across simultaneous challenges with incomplete information. The same pressure an analyst faces during an actual incident.`,
               tech: ['Burp Suite', 'Wireshark', 'Ghidra', 'Web Exploitation', 'Reverse Engineering', 'Forensics'],
               features: [
-                { title: '// Top 5 in BC', desc: 'CyberSci Canada Regionals — top 5 provincial finish in a national university cybersecurity competition' },
-                { title: '// Red + Blue Team', desc: 'Web exploitation, reverse engineering, and forensics — full attack and defence scope in one competition' },
-                { title: '// Ghidra RE', desc: 'Binary reverse engineering and static analysis — disassembly, decompilation, and function identification' },
-                { title: '// Team Coordination', desc: 'Documented findings and coordinated response actions with team members across simultaneous challenges' },
+                { title: '// Top 5 in BC', desc: 'CyberSci Canada Regionals — top 5 provincial finish in Canada\'s national university security competition' },
+                { title: '// Web Exploitation', desc: 'Burp Suite — HTTP interception, injection, auth bypass across multi-step attack chains' },
+                { title: '// Binary RE', desc: 'Ghidra — disassembly, decompilation, x86/x64 static analysis and function identification from compiled binaries' },
+                { title: '// Digital Forensics', desc: 'Wireshark pcap analysis — reconstructing attack timelines from network traffic and memory artifacts' },
               ],
               stats: [{ n: 'Top 5', l: 'BC Ranking' }, { n: 'Sep 2025', l: 'Date' }, { n: 'National', l: 'Competition' }],
+              diagram: `graph LR
+  COMP(["CyberSci Regionals — Sep 2025"]) --> WEB & BIN & FOR
+
+  subgraph WEB["WEB EXPLOITATION"]
+    direction TB
+    BP["Burp Suite<br/>proxy + interception"]
+    INJ["SQLi / XSS / Auth Bypass<br/>chained attack flows"]
+    BP --> INJ
+  end
+
+  subgraph BIN["BINARY REVERSE ENGINEERING"]
+    direction TB
+    GH["Ghidra<br/>disassembly + decompile"]
+    ASM["x86 / x64 Static Analysis<br/>control flow + flag extraction"]
+    GH --> ASM
+  end
+
+  subgraph FOR["DIGITAL FORENSICS"]
+    direction TB
+    WS["Wireshark<br/>pcap analysis"]
+    ART["Artifact Recovery<br/>network timeline reconstruction"]
+    WS --> ART
+  end
+
+  WEB & BIN & FOR --> RES(["Top 5 — BC"])`,
             }
           },
 
@@ -1498,19 +1547,33 @@ Tools applied: Burp Suite for web proxy and vulnerability exploitation, Wireshar
               title: 'External Director',
               subtitle: 'SFU Cybersecurity Club · Dec 2024 – Present',
               tags: [{ label: 'Current', cls: 'tag-green' }, { label: 'Leadership', cls: 'tag-mauve' }, { label: 'SFU', cls: 'tag-blue' }],
-              description: `External Director of the SFU Cybersecurity Club — responsible for industry partnerships, external outreach, and driving technical engagement across the club's membership.
+              description: `## Role
 
-Achieved a 30% increase in member engagement (measured by event attendance) by coordinating 10+ technical events and delivering live demonstrations on cybersecurity workflows to 30+ members per session. Events covered SOC workflows, CTF walkthroughs, tool demonstrations, and industry career panels.
+**External Director** of the SFU Cybersecurity Club — responsible for industry partnerships, external outreach, and driving technical engagement across the club's membership.
 
-Orchestrated strategic partnerships between the SFU Cybersecurity Club and industry professionals — managing high-level outreach to integrate corporate expertise into student-led technical programming. Built relationships with security practitioners to bring real-world perspective into academic club activities.`,
+## Impact
+
+Achieved a **30% increase in member engagement** (measured by event attendance) by coordinating 10+ technical events per semester and delivering live demonstrations to **30+ members per session**.
+
+Events covered SOC workflows, CTF walkthroughs, tool demonstrations (Burp Suite, Wireshark, Splunk), and industry career panels.
+
+## Industry Partnerships
+
+> Orchestrated strategic partnerships with security practitioners and industry professionals — integrating real-world perspective into student-led technical programming. The goal: make the club feel like a SOC team, not a study group.`,
               tech: ['Event Coordination', 'Industry Outreach', 'Technical Demos', 'Partnership Development'],
               features: [
-                { title: '// 30% Engagement Lift', desc: '30% increase in member engagement measured by event attendance across the semester' },
-                { title: '// 10+ Technical Events', desc: 'Coordinated 10+ events per semester — CTF walkthroughs, tool demos, SOC workflow sessions' },
-                { title: '// Industry Partnerships', desc: 'Managed outreach to industry professionals — integrated corporate expertise into club programming' },
-                { title: '// Live Demos', desc: 'Delivered live cybersecurity workflow demonstrations to 30+ members per session' },
+                { title: '// 30% Engagement Lift', desc: '30% increase in member engagement — measured by event attendance across the semester' },
+                { title: '// 10+ Technical Events', desc: 'CTF walkthroughs, Splunk/SOC demos, Burp Suite workshops — 30+ members per session' },
+                { title: '// Industry Partnerships', desc: 'Managed outreach to security practitioners — integrated industry expertise into club programming' },
+                { title: '// CyberSci Coordination', desc: 'Organized club participation in CyberSci Canada Regionals — team formation and preparation' },
               ],
-              stats: [{ n: '30%', l: 'Engagement ↑' }, { n: '10+', l: 'Events' }, { n: 'Dec 2024–', l: 'Timeline' }],
+              stats: [{ n: '30%', l: 'Engagement ↑' }, { n: '10+', l: 'Events/Sem' }, { n: 'Dec 2024–', l: 'Timeline' }],
+              steps: [
+                { n: 'Q1 2025', title: 'Partnership Outreach', desc: 'Reached out to industry security practitioners to establish relationships for club programming — building the external network.' },
+                { n: 'Q2 2025', title: 'Technical Event Series', desc: 'Ran 10+ events — CTF walkthroughs, Splunk SOC demos, and live Burp Suite demonstrations for 30+ members per session.' },
+                { n: 'Q3 2025', title: '30% Engagement Milestone', desc: 'Measured 30% increase in member engagement by attendance — Q3 vs Q1 headcount comparison validated the program approach.' },
+                { n: 'Sep 2025', title: 'CyberSci Regionals', desc: 'Coordinated club participation in CyberSci Canada Regionals — team formation, prep resources, and competition logistics.' },
+              ],
             }
           },
 
@@ -1528,16 +1591,50 @@ Orchestrated strategic partnerships between the SFU Cybersecurity Club and indus
               title: 'languages.md',
               subtitle: 'Programming and scripting languages — daily drivers and working proficiency',
               tags: [{ label: 'Skills', cls: 'tag-green' }, { label: 'Languages', cls: 'tag-peach' }],
-              description: `Languages I write across security research, systems programming, and application development. Honest proficiency — no filler.`,
+              description: `## The Honest List
+
+Languages I actively use across security research, systems programming, and application development. **No filler** — proficiency shown by what I've shipped.
+
+## Primary Stack
+
+**Python** — Daily driver. Security tooling, ML pipelines, API integration, LangGraph agentic workflows, Flask backends. If something needs to be automated, it's Python.
+
+**C / C++23** — Systems work. CVE exploiter engine, cryptanalysis tool with lock-free threading, RISC-V coursework. Comfortable with manual memory management, std::atomic, mmap.
+
+**TypeScript / JavaScript** — React and React Native frontends. TypeScript preferred — used in GWLApp (production) and the disaster alert system. Type safety matters at the API boundary.
+
+**PowerShell** — Windows-side scripting: endpoint forensics, artifact collection, EDR automation, and IR tooling. Useful anywhere Windows logs need to be parsed or processes need to be scripted.
+
+**SQL** — Database design (BCNF, raw pymysql) and SIEM data extraction (Splunk SPL). Wrote the 9-table RideSync schema from scratch, no ORM.`,
               tech: [],
               features: [
-                { title: '// Python', desc: 'Primary language — security tooling, ML pipelines, API integration, agentic workflows, LangGraph. Used daily.' },
-                { title: '// C / C++', desc: 'Systems programming — CVE exploiter engine, cryptanalysis tool (C++23), RISC-V work. Comfortable with manual memory management.' },
-                { title: '// JavaScript / TypeScript', desc: 'React and React Native frontends. TypeScript preferred for type safety — used in GWLApp and disaster alert system.' },
-                { title: '// PowerShell', desc: 'Windows-side scripting — endpoint forensics, artifact collection, EDR automation, and IR tooling.' },
-                { title: '// SQL', desc: 'Database queries and schema design — used in Flask API logging (Pokémon classifier) and SIEM data extraction.' },
+                { title: '// Python', desc: 'Primary — security tooling, LangGraph, ML pipelines, Flask APIs, agentic workflows. Used daily.' },
+                { title: '// C / C++23', desc: 'Systems — CVE exploiter engine, C++23 cryptanalysis tool (std::jthread, std::atomic, mmap). Manual memory management.' },
+                { title: '// TypeScript / JS', desc: 'React Native (GWLApp production), React frontends — TypeScript preferred for type safety at API boundaries.' },
+                { title: '// PowerShell', desc: 'Windows IR scripting — endpoint forensics, artifact collection, EDR automation, process investigation.' },
+                { title: '// SQL', desc: 'BCNF schema design (RideSync, 9 tables), raw pymysql queries, Splunk SPL for SIEM data extraction.' },
               ],
-              stats: [{ n: 'Python', l: 'Primary' }, { n: 'C/C++', l: 'Systems' }, { n: '6+', l: 'Languages' }],
+              stats: [{ n: 'Python', l: 'Primary' }, { n: 'C/C++23', l: 'Systems' }, { n: '5+', l: 'Languages' }],
+              diagram: `graph LR
+  subgraph SYS["SYSTEMS"]
+    direction TB
+    CPP["C / C++23<br/>CVE Engine · Cryptanalysis<br/>mmap · std::atomic"]
+    PS["PowerShell<br/>Windows IR · EDR<br/>Artifact Collection"]
+  end
+
+  subgraph WEB["WEB & APP"]
+    direction TB
+    TS["TypeScript / JS<br/>React · React Native<br/>GWLApp Production"]
+    SQL["SQL<br/>BCNF · raw pymysql<br/>Splunk SPL"]
+  end
+
+  subgraph AUTO["AUTOMATION & AI"]
+    direction TB
+    PY["Python<br/>LangGraph · Flask · ML<br/>Security Tooling · Daily Driver"]
+  end
+
+  SYS <--> AUTO
+  WEB <--> AUTO`,
             }
           },
 
@@ -1547,17 +1644,54 @@ Orchestrated strategic partnerships between the SFU Cybersecurity Club and indus
               title: 'security-tools.md',
               subtitle: 'Offensive and defensive tooling — competition and lab proven',
               tags: [{ label: 'Skills', cls: 'tag-green' }, { label: 'Security', cls: 'tag-red' }],
-              description: `Security tools I've applied in real environments — competitions, research, and the home lab. Not a marketing list.`,
+              description: `## The Toolkit
+
+Security tools I've applied in **real environments** — competitions, research lab, and home lab infrastructure. Proven under pressure, not just installed.
+
+## Offensive
+
+**Burp Suite** — Web proxy for vulnerability exploitation, HTTP inspection, and attack chain chaining. Used at CyberSci Regionals for web exploitation challenges and in the home lab for detection rule validation.
+
+**Ghidra** — Binary reverse engineering: disassembly, decompilation, and function identification from compiled binaries without source. Primary RE tool at CyberSci for x86/x64 static analysis.
+
+**Kali Linux** — Primary attack platform. Enumeration, exploitation, and post-exploitation across lab and competition environments.
+
+## Defensive
+
+**Splunk** — SIEM deployment, SPL query writing, detection rule authoring, and correlation rule validation. Configured with Universal Forwarders in the home lab, also used in the Sentinel SOAR pipeline via HEC.
+
+**Velociraptor DFIR** — Endpoint visibility and forensic artifact collection. Deployed server on Ubuntu, enrolled Windows 10 endpoints via YAML config, ran VQL hunts for simultaneous multi-endpoint collection.
+
+**Wireshark** — Packet capture analysis and network forensics. Competition and lab use for traffic inspection, attack timeline reconstruction, and anomaly identification.
+
+> The best tooling knowledge comes from running attacks and detecting them in the same environment. That's what the home lab is for.`,
               tech: [],
               features: [
-                { title: '// Burp Suite', desc: 'Web proxy for vulnerability exploitation and HTTP inspection — used at CyberSci Regionals and in the home lab.' },
-                { title: '// Ghidra', desc: 'Binary reverse engineering — static analysis, decompilation, and function identification. Used in CTF RE challenges.' },
-                { title: '// Wireshark', desc: 'Packet capture analysis and network forensics. Competition and lab use for traffic inspection and anomaly identification.' },
-                { title: '// Splunk', desc: 'SIEM — SPL queries, detection rule authoring, correlation rule validation. Configured in the home lab environment.' },
-                { title: '// Velociraptor DFIR', desc: 'Endpoint visibility and forensic collection — deployed in distributed lab with VQL-automated artifact collection.' },
-                { title: '// Kali Linux', desc: 'Primary attack platform — enumeration, exploitation, and post-exploitation tooling across lab and competition environments.' },
+                { title: '// Burp Suite', desc: 'Web exploitation — proxy, injection, auth bypass. CyberSci Regionals + home lab detection validation.' },
+                { title: '// Ghidra', desc: 'Binary RE — disassembly, decompilation, x86/x64 static analysis. CyberSci CTF reverse engineering challenges.' },
+                { title: '// Splunk + SPL', desc: 'SIEM — detection rule authoring, correlation rules, Universal Forwarders. Home lab + Sentinel SOAR pipeline.' },
+                { title: '// Velociraptor DFIR', desc: 'Endpoint forensics — Ubuntu server, YAML enrollment, VQL hunts across Windows 10 endpoints simultaneously.' },
+                { title: '// Wireshark', desc: 'Network forensics — pcap analysis, attack timeline reconstruction, traffic anomaly identification.' },
+                { title: '// Kali Linux', desc: 'Primary attack platform — enumeration, exploitation, and post-exploitation. Lab and competition environments.' },
               ],
-              stats: [{ n: 'Ghidra', l: 'RE Tool' }, { n: 'Splunk', l: 'SIEM' }, { n: 'Kali', l: 'Attack Platform' }],
+              stats: [{ n: 'Ghidra', l: 'RE' }, { n: 'Splunk', l: 'SIEM' }, { n: 'Velociraptor', l: 'DFIR' }],
+              diagram: `graph TD
+  subgraph OFF["OFFENSIVE"]
+    direction LR
+    BU["Burp Suite<br/>Web Exploitation"]
+    GH["Ghidra<br/>Binary RE"]
+    KA["Kali Linux<br/>Attack Platform"]
+  end
+
+  subgraph DEF["DEFENSIVE"]
+    direction LR
+    SP["Splunk SIEM<br/>SPL · Detection Rules"]
+    VE["Velociraptor DFIR<br/>VQL · Endpoint Forensics"]
+    WS["Wireshark<br/>Network Forensics · pcap"]
+  end
+
+  OFF -->|"attack generates telemetry"| DEF
+  DEF -->|"detection rules tested against live attacks"| OFF`,
             }
           },
 
@@ -1567,16 +1701,59 @@ Orchestrated strategic partnerships between the SFU Cybersecurity Club and indus
               title: 'ai-ml.md',
               subtitle: 'AI and ML tooling — LLM integration, agentic workflows, computer vision',
               tags: [{ label: 'Skills', cls: 'tag-green' }, { label: 'AI / ML', cls: 'tag-mauve' }],
-              description: `AI and ML capabilities applied in real projects — not theoretical. All of this has shipped or is actively in development.`,
+              description: `## Applied, Not Theoretical
+
+AI and ML capabilities proven in shipped projects. All of this is in production or active development.
+
+## Agentic Orchestration
+
+**LangGraph** — Multi-agent orchestration for the CVE exploitation pipeline. 8-stage graph: deterministic scaffolding nodes handle known patterns, LLM agent nodes handle non-deterministic edge cases. The key insight: route to an LLM only when a deterministic solution doesn't exist.
+
+**Agentic Workflows** — Designing systems where AI agents make autonomous decisions with constraint systems, retry budgets, and validation gates. The same pattern applies to SOC automation and IR playbooks.
+
+## LLM Integration
+
+**Claude API** — Production integration in two projects: CVE exploiter (build failure diagnosis + fix generation) and Sentinel SOAR (alert analysis + CVE mapping + remediation strategy). Anthropic Certified.
+
+**Prompt Engineering** — Structured prompting for consistent, deterministic LLM output in automated pipelines. Critical when non-determinism has cost implications (API calls, Docker builds).
+
+## Computer Vision
+
+**ConvNeXt** — Image classification pipeline achieving **92% accuracy on 10,000+ images**. Transfer learning from ImageNet, progressive fine-tuning, Flask inference API with <200ms latency.
+
+> The interesting AI work is at the boundaries: deciding when NOT to use an LLM, designing the constraint system that makes autonomous agents safe, and engineering around non-determinism.`,
               tech: ['Claude API', 'GPT Integration', 'LangGraph', 'ConvNeXt', 'Prompt Engineering'],
               features: [
-                { title: '// LLM Integration', desc: 'Claude and GPT API integration in production — agentic CVE exploiter uses LLM reasoning for edge-case handling.' },
-                { title: '// LangGraph', desc: 'Multi-agent orchestration framework — used to build the hybrid deterministic-agentic CVE exploitation pipeline.' },
-                { title: '// Agentic Workflows', desc: 'Designing systems where LLM agents make autonomous decisions — analogous to SOC automation and IR playbooks.' },
-                { title: '// ConvNeXt', desc: 'Image classification pipeline achieving 92% accuracy on 10k+ images — modern CNN architecture for production deployment.' },
-                { title: '// Prompt Engineering', desc: 'Anthropic AI coursework certified. Structured prompting for consistent, reliable LLM output in automated pipelines.' },
+                { title: '// LangGraph', desc: 'Multi-agent orchestration — 8-stage CVE pipeline, deterministic + agentic node routing, retry budget management' },
+                { title: '// Claude API', desc: 'Production integration — CVE build failure diagnosis (exploiter) and alert analysis + remediation (Sentinel SOAR)' },
+                { title: '// Agentic Workflows', desc: 'Autonomous decision systems with constraint gates, validation layers, and rollback — applied to security automation' },
+                { title: '// ConvNeXt', desc: '92% accuracy on 10k+ images — transfer learning, progressive fine-tuning, Flask REST API at <200ms inference' },
               ],
-              stats: [{ n: 'LangGraph', l: 'Orchestration' }, { n: '92%', l: 'CV Accuracy' }, { n: 'ISC2 + CC', l: 'Certified' }],
+              stats: [{ n: 'LangGraph', l: 'Orchestration' }, { n: '92%', l: 'CV Accuracy' }, { n: 'Certified', l: 'Anthropic' }],
+              diagram: `graph LR
+  subgraph ORCH["AGENTIC ORCHESTRATION"]
+    direction TB
+    LG["LangGraph<br/>Multi-Agent Graph"]
+    GATE["Constraint Gates<br/>Validation + Retry Budget"]
+    LG --> GATE
+  end
+
+  subgraph LLM["LLM INTEGRATION"]
+    direction TB
+    CL["Claude API<br/>CVE Diagnosis · SOAR Analyst"]
+    PE["Prompt Engineering<br/>Deterministic Output"]
+    CL --> PE
+  end
+
+  subgraph CV["COMPUTER VISION"]
+    direction TB
+    CNX["ConvNeXt<br/>92% Accuracy"]
+    API["Flask Inference API<br/>under 200ms"]
+    CNX --> API
+  end
+
+  ORCH --> LLM
+  LLM --> ORCH`,
             }
           },
 
@@ -1612,19 +1789,36 @@ Orchestrated strategic partnerships between the SFU Cybersecurity Club and indus
               title: 'Simon Fraser University',
               subtitle: 'B.A.Sc. Computer Science · Sep 2023 – Dec 2027',
               tags: [{ label: 'Education', cls: 'tag-mauve' }, { label: 'Current', cls: 'tag-green' }, { label: 'SFU', cls: 'tag-blue' }],
-              description: `Bachelor of Applied Sciences in Computer Science at Simon Fraser University, Burnaby, BC. Expected graduation December 2027.
+              description: `## Program
 
-SFU's CS program covers systems programming, algorithms, computer architecture, operating systems, networking, and software engineering — a strong match for the intersection of security and systems work I pursue outside of class.
+**Bachelor of Applied Sciences in Computer Science** at Simon Fraser University, Burnaby, BC. Expected graduation **December 2027**.
 
-Concurrently working as a Research Assistant in the Department of Cybersecurity and AI, and serving as External Director of the SFU Cybersecurity Club — applying academic learning directly in research and industry-adjacent contexts.`,
+SFU's CS program covers systems programming, algorithms, computer architecture, operating systems, networking, and software engineering — strong theoretical groundwork for the intersection of security and systems I pursue outside of class.
+
+## Beyond Coursework
+
+What matters more than the degree is what I've built while enrolled:
+
+- **Research Assistant** in the Cybersecurity & AI department — engineering a CVE exploitation pipeline proposed to Trend Micro
+- **External Director** of the SFU Cybersecurity Club — industry partnerships, 10+ technical events per semester
+- **CyberSci Canada Regionals** — Top 5 BC in Canada's national university security competition
+
+> The degree provides the foundation. The research, competition, and lab work is the actual development.`,
               tech: ['C / C++', 'Python', 'Java', 'Systems Programming', 'Algorithms', 'OS Concepts'],
               features: [
-                { title: '// Program', desc: 'B.A.Sc. Computer Science — systems, algorithms, OS, networking, software engineering' },
-                { title: '// Research', desc: 'Concurrent research assistantship in Cybersecurity & AI department — active research alongside coursework' },
-                { title: '// Club', desc: 'External Director, SFU Cybersecurity Club — industry partnerships and technical event coordination' },
-                { title: '// Timeline', desc: 'Sep 2023 – Dec 2027 (expected) — currently enrolled' },
+                { title: '// Program', desc: 'B.A.Sc. Computer Science — systems, algorithms, OS, networking, software engineering at SFU' },
+                { title: '// Research', desc: 'Concurrent research assistantship — Cybersecurity & AI department, active alongside coursework' },
+                { title: '// Club Leadership', desc: 'External Director, SFU Cyber Club — industry partnerships and 10+ technical events per semester' },
+                { title: '// Competition', desc: 'CyberSci Canada Regionals — Top 5 BC, web exploitation, binary RE, and forensics' },
               ],
-              stats: [{ n: 'SFU', l: 'University' }, { n: 'B.A.Sc.', l: 'Degree' }, { n: '2027', l: 'Expected' }],
+              stats: [{ n: 'SFU', l: 'University' }, { n: 'B.A.Sc.', l: 'Degree' }, { n: 'Dec 2027', l: 'Expected' }],
+              steps: [
+                { n: 'Sep 2023', title: 'Enrolled at SFU', desc: 'Started B.A.Sc. Computer Science — systems programming, algorithms, and OS concepts as the foundation.' },
+                { n: 'Dec 2024', title: 'SFU Cybersecurity Club', desc: 'Elected External Director — industry partnerships, technical events, and coordinating CyberSci competition participation.' },
+                { n: 'Sep 2025', title: 'CyberSci Canada Regionals', desc: 'Top 5 finish in BC at Canada\'s national university security competition — web exploitation, binary RE, forensics.' },
+                { n: 'Dec 2025', title: 'Research Assistantship', desc: 'Joined SFU\'s Cybersecurity & AI lab — engineering CVE pipeline, improving build success 51% → 86%, Trend Micro proposal.' },
+                { n: 'Dec 2027', title: 'Expected Graduation', desc: 'B.A.Sc. Computer Science — completing degree alongside active research and industry work.' },
+              ],
             }
           },
 
@@ -1634,15 +1828,29 @@ Concurrently working as a Research Assistant in the Department of Cybersecurity 
               title: 'ISC2 Certified in Cybersecurity (CC)',
               subtitle: 'ISC2 · Certified',
               tags: [{ label: 'Certificate', cls: 'tag-blue' }, { label: 'Completed', cls: 'tag-green' }],
-              description: `ISC2 Certified in Cybersecurity (CC) — entry-level certification from ISC2, the organization behind CISSP. Covers security principles, network security, access controls, incident response, and governance.
+              description: `## Credential
 
-The CC is ISC2's foundation-level credential, demonstrating baseline security competency across the domains most relevant to security operations and analysis work. Useful as a formal baseline alongside hands-on project and competition experience.`,
+**ISC2 Certified in Cybersecurity (CC)** — foundation-level certification from ISC2, the organization behind CISSP. Demonstrates baseline security competency across the core domains relevant to security operations.
+
+## Domain Coverage
+
+- **Security Principles** — CIA triad, risk management, security controls
+- **Business Continuity** — incident response concepts, disaster recovery, BCP
+- **Access Controls** — identity management, authentication models, authorization
+- **Network Security** — network defence concepts, protocols, monitoring
+- **Security Operations** — incident response workflows, forensic fundamentals
+
+## Why It Matters
+
+> The CC provides a formal baseline that complements hands-on work. It's the difference between "I built a SIEM" and "I built a SIEM and I understand the governance and IR frameworks that contextualize what I'm detecting."
+
+**Status:** Certified and current. CompTIA Security+ in progress for technical depth.`,
               tech: ['Security Principles', 'Network Security', 'Access Controls', 'Incident Response', 'Governance'],
               features: [
-                { title: '// Issuer', desc: 'ISC2 — the organization behind CISSP, one of the most respected names in security certification' },
-                { title: '// Domain Coverage', desc: 'Security Concepts · Business Continuity · Access Controls · Network Security · IR · Governance' },
+                { title: '// Issuer', desc: 'ISC2 — organization behind CISSP, one of the most respected names in security certification' },
+                { title: '// Domains', desc: 'Security Principles · Business Continuity · Access Controls · Network Security · Security Operations' },
                 { title: '// Status', desc: 'Certified and current' },
-                { title: '// Next', desc: 'CompTIA Security+ currently in progress — formalizing the technical depth to complement the CC baseline' },
+                { title: '// Path', desc: 'CompTIA Security+ in progress — adds technical implementation depth to the CC governance baseline' },
               ],
               stats: [{ n: 'ISC2', l: 'Issuer' }, { n: 'CC', l: 'Credential' }, { n: '✓', l: 'Certified' }],
             }
@@ -1674,17 +1882,29 @@ Building on the ISC2 CC baseline with more technical depth — the Security+ goe
               title: 'Anthropic AI Courses',
               subtitle: 'Anthropic · Certified — Prompt Engineering & AI Safety',
               tags: [{ label: 'Certificate', cls: 'tag-mauve' }, { label: 'Completed', cls: 'tag-green' }],
-              description: `Completed Anthropic's AI courses covering prompt engineering, model behaviour, and responsible AI development. Applied directly in the CVE vulnerability exploiter project — structured prompting for consistent, reliable LLM output in automated security pipelines.
+              description: `## Credential
 
-Anthropic's courses go deeper on the mechanics of how large language models respond to different prompt structures, which is directly applicable to building reliable agentic systems where non-determinism needs to be managed.`,
+Completed **Anthropic's AI courses** covering prompt engineering, model behaviour, and responsible AI development. Certified.
+
+## What I Learned That Actually Matters
+
+**Prompt structure affects output reliability.** In an automated pipeline where an LLM needs to consistently diagnose Docker build failures, a loosely structured prompt produces inconsistent output — the agent succeeds sometimes and hallucinates solutions other times. Structured prompting with explicit output schemas reduces non-determinism.
+
+**Context window management changes system design.** Knowing how Claude handles context differently from earlier models changes how you architect the surrounding system — what you include, what you summarize, and where you put the constraint.
+
+**AI safety principles apply directly to agentic security systems.** The Sentinel SOAR pipeline's constraint design — Claude recommends, validation gate approves, agent executes — is a direct application of AI safety principles to a production security system.
+
+## Applied
+
+> Every concept from the Anthropic courses is applied in either the **CVE Exploiter** (LLM diagnosis + structured output) or **Sentinel SOAR** (AI analyst with constraint gates). Theory to production.`,
               tech: ['Prompt Engineering', 'LLM Behaviour', 'Agentic Systems', 'Claude API', 'AI Safety'],
               features: [
-                { title: '// Prompt Engineering', desc: 'Structured prompting techniques for consistent LLM output — applied in the CVE exploiter pipeline' },
-                { title: '// Model Behaviour', desc: 'Understanding how LLMs respond to different prompt structures — key for building reliable agents' },
-                { title: '// Applied', desc: 'Directly applied in the CVE vulnerability exploiter — LLM reasoning for edge-case environment handling' },
-                { title: '// Status', desc: 'Certified and complete' },
+                { title: '// Prompt Engineering', desc: 'Structured prompting for consistent LLM output — applied in CVE exploiter diagnosis and SOAR analyst nodes' },
+                { title: '// Model Behaviour', desc: 'Context window management, output reliability, and non-determinism reduction in automated pipelines' },
+                { title: '// AI Safety Applied', desc: 'Constraint-gate architecture in Sentinel SOAR is a direct application of AI safety principles to production' },
+                { title: '// Status', desc: 'Certified and complete — applied in two active production projects' },
               ],
-              stats: [{ n: 'Anthropic', l: 'Issuer' }, { n: 'Applied', l: 'In Projects' }, { n: '✓', l: 'Certified' }],
+              stats: [{ n: 'Anthropic', l: 'Issuer' }, { n: '2 Projects', l: 'Applied In' }, { n: '✓', l: 'Certified' }],
             }
           },
 
@@ -1697,33 +1917,84 @@ Anthropic's courses go deeper on the mechanics of how large language models resp
         data: {
           title: 'about.md',
           subtitle: 'Vincent Suen — Security Researcher & CS Student at SFU',
-          tags: [{ label: 'About', cls: 'tag-green' }],
-          description: `handle: vincent
-started: SFU Sep 2023
-location:    Burnaby, BC
-
-I work at the intersection of cybersecurity and AI — building systems that analyze, simulate, and defend against real threats. Research assistant in SFU's Cybersecurity & AI department by day, security lab tinkerer by night.
-
-Currently focused on:
-  → Automated vulnerability research & CVE exploitation pipelines
-  → Agentic AI systems for security workflows (LangGraph, LLM integration)
-  → Blue team detection engineering & DFIR (Velociraptor, Splunk)
-  → Reverse engineering & binary analysis (Ghidra, C++23)
-
-Languages: Python, C/C++, JavaScript/TypeScript, PowerShell, SQL
-Certifications: ISC2 CC · CompTIA Security+ (in progress) · Anthropic AI
-Spoken: English
-
-When I'm not at a terminal I'm reading CVE disclosures
-or figuring out why my LangGraph agent is in an infinite loop.`,
-          tech: ['Python', 'C/C++', 'TypeScript', 'PowerShell', 'SQL', 'LangGraph'],
-          features: [
-            { title: '// Research', desc: 'SFU Cybersecurity & AI — CVE automation pipeline proposed to Trend Micro, 80% Docker build success' },
-            { title: '// Competition', desc: 'CyberSci Canada Regionals — Top 5 BC. Web exploitation, reverse engineering, forensics.' },
-            { title: '// Detection', desc: 'Splunk SIEM, Velociraptor DFIR, ATT&CK mapping — blue team tooling and detection engineering' },
-            { title: '// AI/ML', desc: 'LLM integration (Claude, GPT), LangGraph orchestration, ConvNeXt — applied in production projects' },
+          tags: [
+            { label: 'Security Researcher', cls: 'tag-red' },
+            { label: 'SFU', cls: 'tag-blue' },
+            { label: 'Available', cls: 'tag-green' },
           ],
-          stats: [{ n: '8+', l: 'Projects' }, { n: 'Top 5', l: 'BC CyberSci' }, { n: '80%', l: 'CVE Build Rate' }],
+          description: `## whoami
+
+**Vincent Suen** — Security Researcher and CS student at Simon Fraser University. I build systems at the intersection of **cybersecurity** and **artificial intelligence**: autonomous exploit pipelines, SOAR automation, and agentic AI designed for real threat workflows.
+
+Research Assistant in **SFU's Cybersecurity & AI lab** — engineering an autonomous CVE exploitation pipeline that improved Docker build success from **51% → 86%** across 400+ CVEs with a hybrid deterministic-agentic LangGraph architecture. Proposed to **Trend Micro**.
+
+## What I'm Building Right Now
+
+**→ Automated CVE Exploiter** — LangGraph multi-agent pipeline. Ingests CVE specifications, auto-generates proof-of-concept exploits, and spins up Docker environments to reproduce them. 8-stage pipeline, 28+ nodes, 400+ CVEs processed, 86% build success.
+
+**→ Sentinel SOAR** — Autonomous threat response. Wazuh + Elastic + Splunk wired to Claude AI as the analyst. Six external threat intel sources. Closed-loop active response with a validation gate before every command. Every AI decision committed to an immutable GitHub forensic ledger.
+
+## Competitive Record
+
+> **CyberSci Canada Regionals** (Sep 2025) — Top 5 finish in BC. National university security competition covering web exploitation, binary reverse engineering, and digital forensics. Challenges mirror real SOC incident response — not isolated puzzle-style CTFs.
+
+## The Stack
+
+- **Languages:** Python · C/C++23 · TypeScript · PowerShell · SQL
+- **Security:** Splunk SIEM · Wazuh EDR · Velociraptor DFIR · Ghidra · Burp Suite · Kali Linux
+- **AI/ML:** LangGraph · Claude API · ConvNeXt · Anthropic Certified
+- **Infrastructure:** Docker · Firebase · Microsoft Azure
+
+---
+
+*When I'm not at a terminal I'm reading CVE disclosures — or figuring out why my LangGraph agent entered an infinite loop.*`,
+          stats: [{ n: '8+', l: 'Projects' }, { n: 'Top 5', l: 'BC CyberSci' }, { n: '86%', l: 'CVE Build Rate' }],
+          steps: [
+            { n: 'Sep 2023', title: 'Started at SFU', desc: 'Enrolled in B.A.Sc. Computer Science at Simon Fraser University, Burnaby, BC. Discovered the intersection of systems programming and security.' },
+            { n: 'Dec 2024', title: 'External Director — SFU Cyber Club', desc: 'Led external relations for SFU\'s Cybersecurity Club — coordinated industry partnerships, 10+ technical events, 30%+ engagement increase.' },
+            { n: 'Sep 2025', title: 'CyberSci Canada Regionals', desc: 'Competed in Canada\'s national university security competition. Top 5 finish in BC. Web exploitation, binary RE, and forensics.' },
+            { n: 'Dec 2025', title: 'Research Assistant @ SFU Cyber & AI Lab', desc: 'Joined the research lab. Fixed 49% failure rate in CVE-Genie — hybrid deterministic-agentic architecture improved Docker build success to 86%.' },
+            { n: 'Jan 2026 →', title: 'CVE Pipeline + Sentinel SOAR', desc: 'Actively building: autonomous CVE exploitation across 400+ CVEs, and a full SOAR pipeline with Claude AI analyst and closed-loop active remediation.' },
+          ],
+          diagram: `graph LR
+  V(["⬡ Vincent Suen"])
+
+  V --> VULN
+  V --> BLUE
+  V --> AGT
+
+  subgraph VULN["VULNERABILITY RESEARCH"]
+    direction TB
+    CVE["CVE Exploitation Pipeline<br/>LangGraph · Docker · LLM"]
+    BIN["Binary RE<br/>Ghidra · C/C++23 · Exploit Dev"]
+    CTF["CyberSci Regionals<br/>Top 5 BC · Web + RE + Forensics"]
+  end
+
+  subgraph BLUE["BLUE TEAM"]
+    direction TB
+    SIEM["Splunk SIEM<br/>SPL · Detection Engineering"]
+    DFIR["Velociraptor DFIR<br/>VQL Hunts · Artifact Collection"]
+    ATT["ATT&CK Navigator<br/>TAXII · 6 Intel Sources"]
+  end
+
+  subgraph AGT["AGENTIC AI"]
+    direction TB
+    LG["LangGraph<br/>Multi-Agent Orchestration"]
+    LLM["Claude · GPT APIs<br/>Production LLM Integration"]
+    ML["ConvNeXt<br/>92% Accuracy · Computer Vision"]
+  end`,
+          tech: ['Python', 'C/C++23', 'TypeScript', 'LangGraph', 'Claude API', 'Splunk', 'Velociraptor', 'Docker'],
+          features: [
+            { title: '// Research', desc: 'SFU Cybersecurity & AI Lab — CVE automation pipeline, 86% Docker build success, proposed to Trend Micro' },
+            { title: '// Competition', desc: 'CyberSci Canada Regionals — Top 5 BC · Web exploitation · Binary RE · Digital forensics' },
+            { title: '// Blue Team', desc: 'Splunk SIEM · Velociraptor DFIR · ATT&CK mapping · 6-source threat intel · Detection engineering' },
+            { title: '// AI/ML', desc: 'LangGraph orchestration · Claude API integration · ConvNeXt 92% accuracy · Anthropic Certified' },
+          ],
+          links: [
+            { label: '⬡ GitHub', url: 'https://github.com/VincentSuen6', cls: 'github' },
+            { label: '◈ LinkedIn', url: 'https://linkedin.com/in/vsuen6', cls: 'paper' },
+            { label: '✉ Email', url: 'mailto:vincentsuen6@gmail.com', cls: 'demo' },
+          ],
         }
       },
 
@@ -1732,21 +2003,42 @@ or figuring out why my LangGraph agent is in an infinite loop.`,
         type: 'file',
         data: {
           title: 'contact.md',
-          subtitle: 'Let\'s connect',
-          tags: [{ label: 'Contact', cls: 'tag-green' }],
-          description: `Email     : vincentsuen6@gmail.com
-Phone     : 604-537-8860
-LinkedIn  : linkedin.com/in/vsuen6
-GitHub    : github.com/VincentSuen6
-Location  : Burnaby, BC`,
+          subtitle: 'Open to security research roles, SOC internships, and collaborative projects',
+          tags: [
+            { label: 'Available', cls: 'tag-green' },
+            { label: 'Burnaby, BC', cls: 'tag-blue' },
+            { label: 'Remote OK', cls: 'tag-teal' },
+          ],
+          description: `## Get In Touch
+
+Open to **security research roles**, **blue team / SOC positions**, **cybersecurity internships**, and collaborative projects at the intersection of AI and security.
+
+Currently a Research Assistant at **SFU's Cybersecurity & AI Lab**, graduating **Dec 2027**. Looking for co-op / internship opportunities where the work is real.
+
+---
+
+## Contact Details
+
+- **Email** — vincentsuen6@gmail.com
+- **Phone** — 604-537-8860
+- **LinkedIn** — [linkedin.com/in/vsuen6](https://linkedin.com/in/vsuen6)
+- **GitHub** — [github.com/VincentSuen6](https://github.com/VincentSuen6)
+- **Location** — Burnaby, BC · Open to remote
+
+> Best reached by email for research and professional inquiries. LinkedIn for industry connections.`,
           tech: [],
           features: [
-            { title: '// Email', desc: 'vincentsuen6@gmail.com — preferred for research and professional inquiries' },
-            { title: '// LinkedIn', desc: 'linkedin.com/in/vsuen6 — connect for industry opportunities and collaboration' },
-            { title: '// GitHub', desc: 'github.com/VincentSuen6 — project code, security tools, and research repos' },
-            { title: '// Open To', desc: 'Security research roles, blue team / SOC positions, cybersecurity internships, and collaborative projects' },
+            { title: '// Security Research', desc: 'Agentic AI security pipelines, CVE automation, LangGraph orchestration — happy to discuss research collaboration' },
+            { title: '// Blue Team / SOC', desc: 'Splunk SIEM, Velociraptor DFIR, ATT&CK mapping — ready to contribute to detection and IR teams' },
+            { title: '// Internships', desc: 'SFU co-op eligible · Dec 2027 graduation · Available for part-time research roles during semester' },
+            { title: '// Open Source', desc: 'Active on GitHub — check github.com/VincentSuen6 for project code and security tooling' },
           ],
-          stats: [{ n: 'SFU', l: 'Location' }, { n: '2027', l: 'Graduating' }, { n: 'Open', l: 'To Opps' }],
+          stats: [{ n: 'SFU', l: 'Location' }, { n: 'Dec 2027', l: 'Graduating' }, { n: 'Open', l: 'To Opportunities' }],
+          links: [
+            { label: '✉ vincentsuen6@gmail.com', url: 'mailto:vincentsuen6@gmail.com', cls: 'demo' },
+            { label: '⬡ github.com/VincentSuen6', url: 'https://github.com/VincentSuen6', cls: 'github' },
+            { label: '◈ linkedin.com/in/vsuen6', url: 'https://linkedin.com/in/vsuen6', cls: 'paper' },
+          ],
         }
       },
 
