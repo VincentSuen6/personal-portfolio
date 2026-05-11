@@ -490,11 +490,31 @@ Parsed and categorized **400+ CVEs** by attack vector, complexity, privileges re
                 { label: 'Cryptography', cls: 'tag-blue' },
                 { label: 'Active', cls: 'tag-green' },
               ],
-              description: `A high-performance hash cracking suite built in C++23, supporting MD5, SHA1, SHA256, and SHA512. Implements three attack vectors: dictionary attack, brute-force enumeration, and rule-based mutation (leet substitutions, suffix/prefix appending, case toggling).
+              description: `## Executive Summary
+A high-performance hash cracking suite in **C++23** — MD5, SHA1, SHA256, and SHA512. Three attack vectors: dictionary, brute-force, and rule-based mutation. Engineered for **linear throughput scaling** with zero synchronization overhead on the hot path.
 
-The performance engineering is where this gets interesting. Memory-mapped I/O (mmap) enables zero-copy wordlist ingestion — the wordlist is mapped directly into the process address space rather than read into heap buffers, eliminating the copy overhead that limits I/O-bound crackers. Work partitioning is lock-free: std::jthread workers claim chunks atomically via std::atomic operations, with no mutex contention on the hot path.
+## The Engineering Problem
+Most hash crackers are I/O-bound or synchronization-bound. Either they spend cycles copying wordlist data into heap buffers, or worker threads stall on mutexes competing for work. Both kill throughput at scale.
 
-The result is linear throughput scaling with core count — adding cores gives proportional performance gains rather than hitting synchronization bottlenecks.`,
+## The Solution
+Two decisions eliminate both bottlenecks:
+
+**Zero-copy ingestion via \`mmap\`:** The wordlist is mapped directly into the process address space — no heap copy, no read syscalls on the hot path. Workers read directly from the mapped region.
+
+**Lock-free work partitioning:** Workers claim chunks via \`std::atomic\` — a single atomic increment, no mutex, no contention. Each \`std::jthread\` works independently until its chunk is exhausted, then atomically claims another.
+
+> The result: throughput scales **linearly with core count**. Adding cores gives proportional gains because there is nothing to contend on.
+
+## Attack Modes
+
+### Dictionary Attack
+Iterates a known password wordlist using mmap zero-copy loading. Fast for common passwords covered by standard lists like rockyou.
+
+### Brute Force Enumeration
+Generates all combinations for a given charset and length range — exhaustive, effective for short unknown passwords.
+
+### Rule-Based Mutation
+Applies transformation rules to dictionary entries: **leet substitutions** (a→@, e→3), **suffix/prefix appending** (password1, 2025password), and **case toggling** (Password, PASSWORD).`,
               tech: ['C++23', 'std::jthread', 'std::atomic', 'mmap / Memory-Mapped I/O', 'Lock-Free Programming'],
               features: [
                 { title: '// Zero-Copy Ingestion', desc: 'mmap-based wordlist loading eliminates heap copy overhead — wordlist mapped directly into address space' },
@@ -542,11 +562,31 @@ The result is linear throughput scaling with core count — adding cores gives p
                 { label: 'Velociraptor', cls: 'tag-blue' },
                 { label: 'Blue Team', cls: 'tag-teal' },
               ],
-              description: `A distributed endpoint monitoring lab built around Velociraptor DFIR — an open-source endpoint visibility and digital forensics platform. Deployed a Velociraptor server on Ubuntu and enrolled Windows 10 endpoints using customized YAML client configurations for persistent, authenticated enrollment.
+              description: `## Executive Summary
+A distributed DFIR lab built on **Velociraptor** — the same open-source platform used by enterprise SOC teams for endpoint visibility. Deployed server on Ubuntu, enrolled Windows 10 endpoints with persistent YAML configs, and automated forensic artifact collection across all endpoints simultaneously via VQL hunts.
 
-The lab enables remote triage, live memory analysis, and registry monitoring across all enrolled endpoints simultaneously. Forensic collection is automated via VQL (Velociraptor Query Language) hunts: prefetch files, browser history, scheduled tasks, and service persistence mechanisms are collected automatically on demand, cutting manual investigation time significantly during simulated incident response scenarios.
+## The Problem
+Manual incident response triage doesn't scale. Collecting forensic artifacts from multiple endpoints one-by-one — prefetch files, browser history, scheduled tasks, service persistence — takes hours of analyst time per incident.
 
-Built as a realistic blue team detection and response environment — the same architecture used by enterprise SOC teams for endpoint visibility.`,
+## The Solution
+Velociraptor's **VQL (Velociraptor Query Language)** enables hunt-based collection: write one query, run it across all enrolled endpoints simultaneously. What takes hours manually takes seconds.
+
+> This lab replicates real SOC architecture. The same VQL hunts, YAML enrollment configs, and persistent deployment patterns used in enterprise environments at scale.
+
+## Key Components
+
+### Persistent Enrollment
+Customized YAML client configurations ensure Windows endpoints **auto-enroll on boot** and maintain authenticated TLS connections to the server — no manual re-enrollment after restarts.
+
+### Automated VQL Hunts
+Hunts automatically collect across all endpoints simultaneously:
+- **Prefetch files** — execution history evidence
+- **Browser history** — user activity artifacts
+- **Scheduled tasks** — persistence mechanism detection
+- **Service configurations** — lateral movement vectors
+
+### IR Simulation Drills
+Full incident response drills from initial detection through containment — using real forensic artifacts rather than synthetic test data.`,
               tech: ['Velociraptor DFIR', 'VQL', 'Ubuntu Server', 'Windows 10', 'YAML', 'Digital Forensics'],
               features: [
                 { title: '// Persistent Enrollment', desc: 'Customized YAML client configs for authenticated, persistent endpoint enrollment — survives reboots' },
@@ -555,6 +595,34 @@ Built as a realistic blue team detection and response environment — the same a
                 { title: '// IR Simulation', desc: 'Full incident response drill environment — detection through containment with real forensic artifacts' },
               ],
               stats: [{ n: 'VQL', l: 'Query Language' }, { n: 'Live', l: 'Collection' }, { n: 'Dec 2025', l: 'Completed' }],
+              steps: [
+                { n:'01', title: 'Server Deployment', desc: 'Install Velociraptor on Ubuntu, configure TLS certificates, set up admin console and API access.' },
+                { n:'02', title: 'Client Configuration', desc: 'Write customized YAML configs for persistent, authenticated Windows endpoint enrollment.' },
+                { n:'03', title: 'Endpoint Enrollment', desc: 'Deploy configs to Windows 10 endpoints, verify persistent connectivity through reboots.' },
+                { n:'04', title: 'VQL Hunt Development', desc: 'Write VQL hunts for simultaneous artifact collection — prefetch, browser history, scheduled tasks, services.' },
+                { n:'05', title: 'IR Simulation Drills', desc: 'Run full incident response scenarios from detection through containment using real forensic artifacts.' },
+              ],
+              table: {
+                headers: ['Component', 'Role', 'Details'],
+                rows: [
+                  ['Velociraptor Server', 'Platform',    'Ubuntu-hosted DFIR collection point — receives telemetry from all enrolled endpoints'],
+                  ['YAML Client Config', 'Enrollment',   'Persistent Windows endpoint config — auto-reconnects on boot, survives reboots'],
+                  ['VQL Hunt Engine',    'Automation',   'Simultaneous artifact collection across all endpoints in a single query execution'],
+                  ['TLS Channel',        'Security',     'Encrypted, authenticated client-server communication for all telemetry'],
+                  ['IR Playbook',        'Process',      'Structured drill from detection through containment using real forensic artifacts'],
+                ],
+              },
+              diagram: `graph TD
+  A[Velociraptor Server - Ubuntu] --> B{TLS Encrypted Channels}
+  B --> C[Windows Endpoint 1]
+  B --> D[Windows Endpoint 2]
+  B --> E[Windows Endpoint N]
+  C & D & E --> F[VQL Hunt Engine]
+  F --> G[Prefetch Files]
+  F --> H[Browser History]
+  F --> I[Scheduled Tasks]
+  F --> J[Service Persistence]
+  G & H & I & J --> K[IR Analysis and Report]`,
             }
           },
 
@@ -568,11 +636,29 @@ Built as a realistic blue team detection and response environment — the same a
                 { label: 'MITRE ATT&CK', cls: 'tag-blue' },
                 { label: 'Docker', cls: 'tag-teal' },
               ],
-              description: `A visual threat intelligence dashboard built on a Dockerized MITRE ATT&CK Navigator instance, enabling systematic mapping of adversary Tactics, Techniques, and Procedures (TTPs) from threat intelligence reports and incident data.
+              description: `## Executive Summary
+A visual threat intelligence platform built on a **Dockerized MITRE ATT&CK Navigator**. Creates custom APT heatmaps to surface detection gaps, and integrates **TAXII feeds** for automated STIX-format threat intelligence ingestion — operationalizing raw intel into a prioritized detection roadmap.
 
-Custom heatmaps were created for specific APT groups — including Bear APT — by ingesting threat intelligence feeds and overlaying technique frequency onto the ATT&CK matrix. The heatmaps surface detection gaps: techniques used by targeted threat actors that aren't covered by existing detection rules become immediately visible.
+## The Problem
+Threat intelligence reports are hard to act on. "APT29 uses T1055 (Process Injection)" is only useful if you know whether your detection rules cover T1055 — and which sub-techniques they miss. Raw reports don't answer that question quickly.
 
-TAXII configuration logic aligns defensive capabilities with organizational risk profiles — pulling structured threat intelligence from TAXII servers and mapping it to the ATT&CK matrix in near-real-time. Docker volume mounts provide persistent data layers, enabling ingestion and export of JSON-based threat intelligence across teams without data loss between container restarts.`,
+## The Solution
+The ATT&CK Navigator makes detection coverage **visual and immediate**:
+- Techniques covered by existing detection rules → one colour
+- Techniques used by targeted APT groups but **not covered** → flagged immediately
+
+> The gap between APT techniques and your detection coverage is your priority queue. This dashboard makes that gap visible at a glance.
+
+## What I Built
+
+### APT Heatmaps
+Mapped TTPs for specific APT groups (Bear APT) by ingesting threat intelligence and overlaying **technique frequency onto the ATT&CK matrix**. Turns a 200-page intel report into a single prioritized view.
+
+### TAXII Feed Integration
+Configured TAXII feeds to pull **STIX-format structured threat intelligence** from external sources, automatically mapping new indicators and techniques to ATT&CK entries in near-real-time.
+
+### Persistent Docker Deployment
+Docker volume mounts preserve intelligence layers and custom heatmaps across container restarts — shareable across team members without data loss.`,
               tech: ['MITRE ATT&CK Navigator', 'Docker', 'TAXII', 'STIX/JSON', 'Threat Intelligence'],
               features: [
                 { title: '// APT Heatmaps', desc: 'Custom heatmaps for specific APT groups (Bear APT) — technique frequency overlaid on ATT&CK matrix' },
@@ -581,6 +667,33 @@ TAXII configuration logic aligns defensive capabilities with organizational risk
                 { title: '// Persistent Data Layer', desc: 'Docker volume mounts persist intelligence feeds across container restarts — shareable across teams' },
               ],
               stats: [{ n: 'ATT&CK', l: 'Framework' }, { n: 'TAXII', l: 'Intel Feed' }, { n: 'Dec 2025', l: 'Completed' }],
+              steps: [
+                { n:'01', title: 'Docker Deployment', desc: 'Deploy ATT&CK Navigator container with volume mounts for persistent layer and heatmap storage.' },
+                { n:'02', title: 'Baseline Coverage Mapping', desc: 'Import existing detection rules and map current coverage across the full ATT&CK matrix.' },
+                { n:'03', title: 'APT Intelligence Ingestion', desc: 'Ingest threat intel for target APT groups (Bear APT), map their TTPs to ATT&CK techniques.' },
+                { n:'04', title: 'Gap Analysis', desc: 'Overlay APT heatmap against detection coverage to surface uncovered techniques — the detection priority queue.' },
+                { n:'05', title: 'TAXII Integration', desc: 'Configure TAXII feeds for automated STIX intel ingestion and continuous gap monitoring.' },
+              ],
+              table: {
+                headers: ['Component', 'Purpose', 'Details'],
+                rows: [
+                  ['ATT&CK Navigator',  'Platform',     'Visual mapping layer — overlays detection coverage against APT technique heatmaps'],
+                  ['APT Heatmap',       'Analysis',     'Per-actor TTP frequency map — immediate view of detection coverage vs actor behaviour'],
+                  ['TAXII Feed',        'Intel',        'Automated STIX-format threat intel ingestion from external sources into the Navigator'],
+                  ['Gap Analysis Layer','Output',       'Surfaces techniques used by targeted actors not covered by existing detection rules'],
+                  ['Docker Volume',     'Persistence',  'Preserves intel layers and heatmaps across container restarts — shareable across teams'],
+                ],
+              },
+              diagram: `graph TD
+  A[Threat Intel Reports] --> B[ATT&CK TTP Mapping]
+  C[TAXII Feed] -->|STIX Format| B
+  B --> D[ATT&CK Navigator]
+  E[Existing Detection Rules] --> F[Coverage Layer]
+  F --> D
+  D --> G[APT Heatmap]
+  D --> H[Coverage Gap Analysis]
+  H --> I[Detection Priority Queue]
+  G --> I`,
             }
           },
 
@@ -594,19 +707,63 @@ TAXII configuration logic aligns defensive capabilities with organizational risk
                 { label: 'Splunk', cls: 'tag-blue' },
                 { label: 'Blue Team', cls: 'tag-teal' },
               ],
-              description: `A multi-segment home lab built for security research, detection engineering, and practising attack-and-defence scenarios in a controlled environment. The lab is used to deploy, break, and harden services — creating realistic conditions for testing detection queries and automation tools.
+              description: `## Executive Summary
+A multi-segment home lab for **security research, detection engineering, and attack/defence simulation**. Used to deploy, break, and harden services in controlled conditions — testing Splunk detection rules against live attack traffic, practicing log analysis workflows, and iterating on automation tools.
 
-Splunk is configured for security event monitoring and detection rule validation. Log sources from multiple lab segments feed into Splunk, enabling realistic SIEM workflows: writing SPL queries, tuning correlation rules, and validating that detections fire correctly against known attack patterns.
+## Architecture
+The lab is segmented using VLANs to simulate enterprise network controls:
+- **Attack segment** — Kali Linux with Burp Suite for web exploitation and traffic interception
+- **Target segment** — intentionally vulnerable services for realistic attack simulation
+- **Monitoring segment** — Splunk SIEM ingesting logs from both segments
 
-The attack side uses Kali Linux and Burp Suite for web exploitation, enumeration, and traffic interception. Lab segments are isolated using VLANs to prevent unintended lateral spread and to simulate network segmentation controls.`,
+> VLAN segmentation matters because it tests detection across network boundaries — the same way a real SOC monitors east-west traffic between segments.
+
+## What I Use It For
+
+### Detection Rule Development
+Write SPL queries targeting specific attack patterns, run the attack from Kali, verify the detection fires. Iterate until the rule catches the technique without drowning in false positives.
+
+### Log Analysis Practice
+Realistic log volumes from actual attack traffic — not synthetic data. Practice correlating Splunk events across multiple sources (web logs, system logs, network logs) the way a real SIEM analyst would.
+
+### Automation Testing
+Test and iterate on security automation scripts in a repeatable environment where attacks can be replayed deterministically for consistent results.`,
               tech: ['Kali Linux', 'Splunk', 'Burp Suite', 'VLAN Segmentation', 'SPL', 'Log Analysis'],
               features: [
-                { title: '// Detection Validation', desc: 'Splunk SIEM configured with real log sources — SPL queries and correlation rules tested against live attack traffic' },
+                { title: '// Detection Validation', desc: 'Splunk SIEM with real log sources — SPL queries and correlation rules tested against live attack traffic' },
                 { title: '// Attack Simulation', desc: 'Kali Linux attack segment with Burp Suite for web exploitation, enumeration, and traffic inspection' },
                 { title: '// Network Segmentation', desc: 'VLAN-isolated segments simulate real enterprise network controls and prevent lateral spread' },
-                { title: '// Automation Testing', desc: 'Platform for testing and iterating on detection automation tools in repeatable attack/defence scenarios' },
+                { title: '// Automation Testing', desc: 'Platform for testing detection automation tools in repeatable attack/defence scenarios' },
               ],
               stats: [{ n: 'Splunk', l: 'SIEM' }, { n: 'Multi-Seg', l: 'Network' }, { n: 'Ongoing', l: 'Status' }],
+              steps: [
+                { n:'01', title: 'Network Segmentation', desc: 'Configure VLANs to isolate attack, target, and monitoring segments — simulate enterprise network controls.' },
+                { n:'02', title: 'Splunk Deployment', desc: 'Install and configure Splunk, set up Universal Forwarders on target and network segments for log ingestion.' },
+                { n:'03', title: 'Attack Simulation', desc: 'Use Kali Linux and Burp Suite to run attacks against target services — web exploits, enumeration, traffic capture.' },
+                { n:'04', title: 'Detection Development', desc: 'Write SPL queries targeting attack patterns, validate against live traffic, tune to eliminate false positives.' },
+                { n:'05', title: 'Iterate & Automate', desc: 'Replay attacks with modified parameters, refine detection rules, and test automation scripts for consistency.' },
+              ],
+              table: {
+                headers: ['Segment', 'Role', 'Tools'],
+                rows: [
+                  ['Attack',     'Offensive',  'Kali Linux, Burp Suite — web exploitation, enumeration, traffic interception'],
+                  ['Target',     'Victim',     'Intentionally vulnerable services across web and OS layers for realistic simulation'],
+                  ['Monitoring', 'Detection',  'Splunk SIEM — SPL queries, correlation rules, detection rule validation against live traffic'],
+                  ['Network',    'Isolation',  'VLAN segmentation — simulates east-west traffic controls used in enterprise environments'],
+                ],
+              },
+              diagram: `graph LR
+  A[Kali Linux - Attack] -->|Web Exploits| B[Target Services]
+  A -->|Enumeration| B
+  B -->|System Logs| C[Splunk SIEM]
+  A -->|Attack Traffic| D[Network Logs]
+  D --> C
+  C --> E[SPL Detection Rules]
+  E --> F{Alert Fired?}
+  F -->|Yes| G[Investigate and Tune]
+  F -->|No| H[Refine Query]
+  G --> E
+  H --> E`,
             }
           },
 
@@ -620,19 +777,65 @@ The attack side uses Kali Linux and Burp Suite for web exploitation, enumeration
                 { label: 'ML / ConvNeXt', cls: 'tag-mauve' },
                 { label: 'Flask', cls: 'tag-blue' },
               ],
-              description: `An end-to-end image classification pipeline achieving 92% accuracy on a 10,000+ image dataset. Built on ConvNeXt — a modern convolutional architecture that matches Vision Transformer performance while retaining the inductive biases that make CNNs efficient on smaller datasets.
+              description: `## Executive Summary
+An end-to-end image classification pipeline achieving **92% accuracy on 10,000+ images** using ConvNeXt — a modern CNN architecture that matches Vision Transformer performance while retaining the efficiency advantages of convolutional networks on smaller datasets.
 
-The pipeline includes a real-time RESTful Flask API for inference: images are submitted via POST request, preprocessed, passed through the ConvNeXt model, and a classification result with confidence scores is returned in under 200ms. All inference requests and results are logged to a SQL database for monitoring, retraining data collection, and accuracy tracking over time.
+## Architecture Choice: Why ConvNeXt?
+ConvNeXt (2022) modernizes ResNet by incorporating design decisions from Vision Transformers — larger kernels, inverted bottleneck blocks, fewer activation functions — without the quadratic attention overhead. For a 10k-image dataset, it's a better fit than a full ViT.
 
-The project was a deliberate exploration of applying modern computer vision architectures to a well-defined classification problem — balancing model complexity, training data size, and inference latency for a production-viable deployment.`,
+> Transformer-competitive accuracy with CNN-level training efficiency and inference latency.
+
+## Pipeline Components
+
+### Training Pipeline
+- **Transfer learning** from ImageNet pre-trained weights — fine-tuned on the Pokémon dataset
+- **Data augmentation** (random flip, crop, colour jitter) for generalization
+- Training monitored via loss/accuracy curves with early stopping
+
+### Inference API
+A Flask RESTful API wraps the trained model:
+- \`POST /predict\` — submit image, receive classification + confidence scores
+- **Sub-200ms** end-to-end inference latency
+- Input validation and preprocessing handled server-side
+
+### SQL Logging System
+Every inference request is logged:
+- Timestamp, image hash, predicted class, confidence score
+- Enables **accuracy tracking over time** and retraining data collection
+- Query-able for model drift detection`,
               tech: ['Python', 'ConvNeXt', 'Flask', 'SQL', 'REST API', 'Computer Vision'],
               features: [
                 { title: '// 92% Accuracy', desc: 'ConvNeXt pipeline evaluated on 10,000+ image test set — competitive with transformer-based approaches' },
                 { title: '// Real-Time API', desc: 'Flask RESTful API — image in, classification + confidence out in <200ms per inference request' },
-                { title: '// SQL Logging', desc: 'All inference requests and results persisted to SQL — enables accuracy tracking and retraining data collection' },
+                { title: '// SQL Logging', desc: 'All inference requests persisted to SQL — enables accuracy tracking and retraining data collection' },
                 { title: '// End-to-End Pipeline', desc: 'Data preprocessing, model training, evaluation, and API deployment all in one codebase' },
               ],
               stats: [{ n: '92%', l: 'Accuracy' }, { n: '10k+', l: 'Images' }, { n: '<200ms', l: 'Inference' }],
+              steps: [
+                { n:'01', title: 'Data Preparation', desc: 'Curate 10,000+ Pokémon images, apply augmentation pipeline (flip, crop, colour jitter) for generalization.' },
+                { n:'02', title: 'Model Configuration', desc: 'Configure ConvNeXt with ImageNet pre-trained weights for transfer learning fine-tuning.' },
+                { n:'03', title: 'Training & Evaluation', desc: 'Train on dataset, monitor loss/accuracy curves with early stopping, evaluate on held-out test set (92%).' },
+                { n:'04', title: 'Flask API', desc: 'Wrap trained model in RESTful API — POST image, JSON response with class and confidence in <200ms.' },
+                { n:'05', title: 'SQL Logging', desc: 'Implement inference logging for accuracy tracking over time, drift detection, and retraining data collection.' },
+              ],
+              table: {
+                headers: ['Component', 'Role', 'Details'],
+                rows: [
+                  ['ConvNeXt Model', 'ML Core',    'ImageNet pre-trained, fine-tuned — 92% accuracy on 10k+ image test set'],
+                  ['Flask API',      'Inference',  'RESTful endpoint — POST image, JSON classification + confidence in <200ms'],
+                  ['SQL Logger',     'Monitoring', 'Logs every request — accuracy tracking, drift detection, retraining dataset'],
+                  ['Data Pipeline',  'Training',   'Augmentation, normalization, batching for training and inference preprocessing'],
+                ],
+              },
+              diagram: `graph LR
+  A[Image Input] --> B[Preprocessing]
+  B --> C[ConvNeXt Model]
+  C --> D[Softmax Layer]
+  D --> E[Class + Confidence]
+  E --> F[Flask API Response]
+  E --> G[SQL Logger]
+  G --> H[Accuracy Tracking]
+  G --> I[Retraining Dataset]`,
             }
           },
 
@@ -646,11 +849,27 @@ The project was a deliberate exploration of applying modern computer vision arch
                 { label: 'TypeScript', cls: 'tag-teal' },
                 { label: 'Flask', cls: 'tag-peach' },
               ],
-              description: `A real-time disaster response platform that orchestrates multiple REST APIs into an agentic evacuation routing system. The platform ingests live disaster event data, calculates optimal evacuation routes considering road conditions and hazard zones, and delivers routing instructions in real-time.
+              description: `## Executive Summary
+A real-time disaster response platform achieving a **40% reduction in route calculation time** through parallel API orchestration. Ingests live disaster event data, calculates optimal evacuation routes considering hazard zones and road conditions, and delivers routing instructions via a React/TypeScript frontend.
 
-The 40% reduction in route calculation time came from replacing sequential API calls with parallel orchestration — the platform now fans out to multiple data sources simultaneously and aggregates results rather than waiting for each response in series. A Flask backend handles orchestration logic while a React/TypeScript frontend delivers a responsive, real-time UI.
+## The Core Problem
+The original implementation called external APIs **sequentially** — road conditions, then hazard data, then route calculation. Each call blocked the next. At peak load, stacked latency made the system too slow for real emergency use.
 
-The agentic component handles edge cases: when primary routes are blocked or data sources are unavailable, the agent dynamically re-routes without user intervention — analogous to automated incident response playbook execution in a SOC context.`,
+## The Solution: Fan-Out Orchestration
+Replace sequential calls with **parallel fan-out**:
+- All data source APIs queried simultaneously
+- Results aggregated once all responses return
+- Route calculation begins with complete data, not partial
+
+> Same pattern as async SOC playbook execution — when multiple data sources need querying, fan out and aggregate rather than query sequentially.
+
+## Agentic Re-Routing
+When primary routes are blocked or data sources are unavailable, the agent dynamically re-routes:
+- Detects unreachable waypoints from API response status
+- Selects alternate route segments from the road graph
+- Delivers updated route **without user intervention**
+
+This mirrors automated IR playbook execution — detecting a failed step and falling back to an alternate procedure automatically.`,
               tech: ['React', 'TypeScript', 'Flask', 'REST APIs', 'Agentic Orchestration', 'Real-Time Data'],
               features: [
                 { title: '// 40% Faster Routing', desc: 'Parallel API orchestration replaces sequential calls — fan-out to multiple sources, aggregate results simultaneously' },
@@ -659,6 +878,108 @@ The agentic component handles edge cases: when primary routes are blocked or dat
                 { title: '// React/TypeScript UI', desc: 'Responsive frontend with real-time route updates — built with TypeScript for type safety and maintainability' },
               ],
               stats: [{ n: '40%', l: 'Faster Routing' }, { n: 'Real-Time', l: 'Data' }, { n: 'May–Aug 2025', l: 'Timeline' }],
+              steps: [
+                { n:'01', title: 'API Integration', desc: 'Connect to disaster event, road condition, and hazard zone data sources — establish baseline sequential implementation.' },
+                { n:'02', title: 'Parallel Orchestration', desc: 'Refactor to fan-out architecture — all data sources queried simultaneously, results aggregated on completion.' },
+                { n:'03', title: 'Route Calculation Engine', desc: 'Implement optimal evacuation routing considering road conditions, hazard zone boundaries, and capacity constraints.' },
+                { n:'04', title: 'Agentic Re-Routing', desc: 'Build fallback logic for blocked routes and unavailable data sources — autonomous re-routing without user intervention.' },
+                { n:'05', title: 'React/TS Frontend', desc: 'Build real-time UI for route display and disaster alert visualization — TypeScript for type safety across the data pipeline.' },
+              ],
+              table: {
+                headers: ['Component', 'Role', 'Details'],
+                rows: [
+                  ['Flask Backend',      'Orchestration', 'Parallel API fan-out — queries all data sources simultaneously and aggregates results'],
+                  ['React Frontend',     'UI',            'Real-time route display and disaster alert visualization — TypeScript throughout'],
+                  ['Route Calculator',   'Core Logic',    'Optimal evacuation routing considering road conditions and hazard zone boundaries'],
+                  ['Agentic Re-Router',  'Resilience',    'Autonomous fallback when primary routes are blocked or data sources are unavailable'],
+                ],
+              },
+              diagram: `graph TD
+  A[Disaster Event Trigger] --> B[Flask Orchestrator]
+  B -->|parallel| C[Disaster Events API]
+  B -->|parallel| D[Road Conditions API]
+  B -->|parallel| E[Hazard Zone API]
+  C & D & E --> F[Result Aggregator]
+  F --> G[Route Calculator]
+  G --> H{Route Valid?}
+  H -->|Yes| I[React Frontend]
+  H -->|Blocked| J[Agentic Re-Router]
+  J --> G`,
+            }
+          },
+
+          'soar-pipeline': {
+            type: 'file',
+            data: {
+              title: 'Autonomous SOAR Pipeline',
+              subtitle: 'Wazuh EDR + Splunk + Elastic SIEM — LLM-driven incident response with forensic audit trail',
+              tags: [
+                { label: 'SOAR', cls: 'tag-red' },
+                { label: 'Anthropic API', cls: 'tag-mauve' },
+                { label: 'Active', cls: 'tag-green' },
+              ],
+              description: `## Executive Summary
+A **Security Orchestration, Automation and Response (SOAR)** pipeline integrating Wazuh EDR, Splunk HEC, and Elastic SIEM to automate threat detection, log correlation, and real-time remediation. **LLM-driven reasoning via the Anthropic API** automates incident response decisions while maintaining a forensic audit trail for every executed command.
+
+## Architecture
+Three components connected by a Python middleware layer:
+- **Wazuh EDR** — endpoint telemetry (process events, registry changes, network connections)
+- **Splunk HEC** — high-throughput log aggregation and correlation
+- **Elastic SIEM** — detection rule evaluation and alert generation
+
+The middleware ingests containerized telemetry, routes events to the appropriate SIEM by type and severity, and triggers the LLM response engine on high-severity alerts.
+
+## LLM-Driven Incident Response
+When a high-severity alert fires, the Anthropic API evaluates the alert context and recommends validated remediation commands. The pipeline executes them after a validation check — **no command runs without validation**.
+
+> Key design constraint: the LLM recommends, the pipeline validates, the system executes. This prevents destructive actions while still enabling autonomous response.
+
+Every command and its rationale is logged to an **immutable forensic audit trail** on GitHub — full accountability for every automated action.
+
+## Advanced TTP Detection
+The multi-vector detection engine captures:
+- **T1547.001** — Registry Run Keys persistence via Wazuh registry monitoring
+- **Multi-stage droppers** — correlated across log sources to detect staged payload delivery
+- **Containerized telemetry** — Python middleware processes Docker container logs for escape detection`,
+              tech: ['Wazuh', 'Splunk', 'Elastic', 'Docker', 'Python', 'Anthropic API'],
+              features: [
+                { title: '// SOAR Pipeline', desc: 'Wazuh EDR + Splunk HEC + Elastic SIEM — automated threat detection, log correlation, and real-time remediation' },
+                { title: '// LLM Response Engine', desc: 'Anthropic API evaluates alerts and recommends validated remediation — iptables, chmod, process termination' },
+                { title: '// Forensic Audit Trail', desc: 'Every AI-recommended and executed command logged immutably to GitHub — full accountability' },
+                { title: '// Advanced TTP Detection', desc: 'T1547.001 registry persistence, multi-stage droppers, containerized telemetry ingestion via Python middleware' },
+              ],
+              stats: [{ n: 'SOAR', l: 'Pipeline' }, { n: 'Anthropic', l: 'LLM Engine' }, { n: 'Mar 2026–', l: 'Timeline' }],
+              steps: [
+                { n:'01', title: 'EDR Deployment', desc: 'Deploy Wazuh agents across endpoints for process, registry, and network telemetry collection.' },
+                { n:'02', title: 'SIEM Integration', desc: 'Configure Splunk HEC ingestion pipeline and Elastic SIEM detection rule deployment.' },
+                { n:'03', title: 'Python Middleware', desc: 'Build middleware to route containerized telemetry to the appropriate SIEM by type and severity.' },
+                { n:'04', title: 'LLM Response Engine', desc: 'Integrate Anthropic API for alert analysis and validated remediation command generation.' },
+                { n:'05', title: 'Forensic Audit Trail', desc: 'Implement immutable logging of all AI-recommended and executed commands to GitHub audit trail.' },
+              ],
+              table: {
+                headers: ['Component', 'Type', 'Responsibility'],
+                rows: [
+                  ['Wazuh EDR',       'Detection',     'Endpoint telemetry — process events, registry changes, network connections'],
+                  ['Splunk HEC',      'Aggregation',   'High-throughput log ingestion and cross-source event correlation'],
+                  ['Elastic SIEM',    'Detection',     'Rule evaluation, alert generation, MITRE ATT&CK-mapped TTP detection'],
+                  ['Python Middleware','Orchestration', 'Routes containerized telemetry, triggers LLM response on high-severity alerts'],
+                  ['Anthropic API',   'Reasoning',     'LLM-driven alert analysis and validated remediation command recommendation'],
+                  ['Audit Logger',    'Compliance',    'Immutable forensic trail of all AI-recommended and executed commands'],
+                ],
+              },
+              diagram: `graph TD
+  A[Wazuh EDR Agents] -->|Telemetry| B[Python Middleware]
+  C[Docker Containers] -->|Container Logs| B
+  B --> D[Splunk HEC]
+  B --> E[Elastic SIEM]
+  D --> F[Correlation Engine]
+  E --> G[Detection Rules]
+  F & G --> H{High Severity?}
+  H -->|Yes| I[Anthropic API]
+  I --> J[Validate Commands]
+  J --> K[Execute Remediation]
+  K --> L[GitHub Audit Trail]
+  H -->|No| M[Standard Alert Queue]`,
             }
           },
 
@@ -672,11 +993,29 @@ The agentic component handles edge cases: when primary routes are blocked or dat
                 { label: 'Firebase', cls: 'tag-peach' },
                 { label: 'Production', cls: 'tag-green' },
               ],
-              description: `A privacy-compliant mobile communication platform deployed to production and serving real users. Built with React Native for cross-platform mobile delivery, Firebase for real-time data sync and authentication, and Firestore as the document store.
+              description: `## Executive Summary
+A privacy-compliant mobile communication platform **deployed to production with real users**. Built with React Native, Firebase for real-time sync, and a server-side RBAC model enforced entirely through Firestore security rules — no client-side trust.
 
-The access control model is role-based (RBAC): users are assigned roles at the organisation level, with permissions enforced server-side through Firestore security rules. No client-side permission checks — all access decisions happen at the database layer, preventing privilege escalation through client manipulation.
+## Security Architecture
 
-Privacy compliance was a first-class concern from the start: data minimisation (only necessary fields stored), access logging for audit trails, and role-gated data visibility so users only see records their role permits. The app reached production deployment with real user adoption — not just a prototype.`,
+### Server-Side RBAC (No Client Trust)
+All access control is enforced in **Firestore security rules** — not in the client app. This is a critical distinction:
+
+- Client-side permission checks can be bypassed by modifying the app
+- Firestore rules run on Google's infrastructure and **cannot be bypassed by a client**
+
+Users are assigned roles at the organisation level. Firestore rules evaluate the role claim on every read/write operation before allowing it through.
+
+### Cryptographic Credential Security
+User credentials use **cryptographic hashing and salting** — passwords are never stored in plaintext. Salt prevents rainbow table attacks even if the database is exfiltrated.
+
+### Privacy-First Design
+Privacy compliance was a first-class requirement from day one, not bolted on after:
+- **Data minimisation** — only necessary fields stored per user
+- **Access logging** — audit trail for privileged operations
+- **Role-gated visibility** — users only see records their role permits
+
+> The difference between a prototype and a production app is the security architecture. This was built production-first.`,
               tech: ['React Native', 'Firebase', 'Firestore', 'RBAC', 'TypeScript', 'Mobile'],
               features: [
                 { title: '// Production Deployment', desc: 'Live app serving real users — not a prototype. Full deployment lifecycle from dev to production.' },
@@ -685,6 +1024,105 @@ Privacy compliance was a first-class concern from the start: data minimisation (
                 { title: '// Cross-Platform', desc: 'React Native delivers iOS and Android from a single codebase with native performance characteristics' },
               ],
               stats: [{ n: 'Live', l: 'Status' }, { n: 'RBAC', l: 'Access Control' }, { n: 'Sep 2025–Jan 2026', l: 'Built' }],
+              steps: [
+                { n:'01', title: 'Schema Design', desc: 'Design relational-style Firestore schema supporting real-time multi-user sync with role-gated data visibility.' },
+                { n:'02', title: 'RBAC Implementation', desc: 'Define role hierarchy, write Firestore security rules — all access decisions enforced at the database layer.' },
+                { n:'03', title: 'Credential Security', desc: 'Implement cryptographic hashing and salting for user credentials — no plaintext storage at any layer.' },
+                { n:'04', title: 'Privacy Controls', desc: 'Implement data minimisation, access logging, and audit trail for privileged operations.' },
+                { n:'05', title: 'Production Deployment', desc: 'Deploy to live environment, verify security rules hold under real user load and edge cases.' },
+              ],
+              table: {
+                headers: ['Component', 'Security Role', 'Details'],
+                rows: [
+                  ['Firestore Rules',   'RBAC',           'Server-side permission enforcement — role decisions at the data layer, no client trust'],
+                  ['Firebase Auth',     'Identity',       'User authentication integrated with Firestore role claims'],
+                  ['Credential Hashing','Security',       'Salted cryptographic hashing — credentials never stored in plaintext or reversibly encoded'],
+                  ['Access Logging',    'Audit',          'Audit trail for privileged operations — privacy compliance requirement'],
+                  ['React Native',      'Frontend',       'Cross-platform iOS/Android from a single codebase with native performance'],
+                ],
+              },
+              diagram: `graph TD
+  A[React Native Client] -->|Request| B[Firebase Auth]
+  B -->|JWT Token| C[Firestore]
+  C --> D{Security Rules Evaluation}
+  D -->|Check Role Claim| E[Role Valid?]
+  E -->|Yes| F[Data Access Granted]
+  E -->|No| G[403 Rejected]
+  F --> H[Role-Gated Response]
+  F --> I[Access Log Entry]
+  H --> A`,
+            }
+          },
+
+          'ridesync': {
+            type: 'file',
+            data: {
+              title: 'RideSync',
+              subtitle: 'Full-stack carpooling platform — BCNF MySQL, raw SQL, Bcrypt, Anthropic AI chatbot',
+              tags: [
+                { label: 'Python / Flask', cls: 'tag-peach' },
+                { label: 'MySQL', cls: 'tag-blue' },
+                { label: 'Anthropic API', cls: 'tag-mauve' },
+              ],
+              description: `## Executive Summary
+A full-stack university carpooling platform with a **9-table BCNF-normalized MySQL database**, raw SQL queries (no ORM), Bcrypt credential security, server-side RBAC, and an integrated **Anthropic Claude chatbot** for AI-powered ride recommendations.
+
+## Database Design: Why No ORM?
+The database was designed and normalized to **Boyce-Codd Normal Form** across 9 tables using raw SQL — a deliberate choice. ORMs abstract away the relational model. Building without one demonstrates direct understanding of:
+
+- **Join strategies** — choosing between approaches based on table cardinality
+- **Index design** — indexing the right columns for this app's query patterns
+- **BCNF normalization** — eliminating all functional dependency anomalies across 9 interrelated tables
+
+### Schema Highlights
+- **Rides** — origin, destination, departure time, available seats, driver FK
+- **Bookings** — passenger FK, ride FK, status (pending / confirmed / cancelled)
+- **Ratings** — bidirectional driver/passenger ratings post-ride
+- **Users** — role-based (driver/passenger), Bcrypt-hashed credentials
+
+## Security Architecture
+- **Bcrypt (12 rounds)** — ~300ms hash time: fast enough for UX, slow enough to defeat brute-force
+- **Parameterized queries** — all SQL uses pymysql parameterization, preventing injection
+- **Server-side RBAC** — role decisions enforced in backend handlers, not the client
+
+## AI Integration
+Integrated **Anthropic Claude** for intelligent ride recommendations — accepts natural language queries, matches them against available rides, and returns ranked results with reasoning.`,
+              tech: ['Python', 'Flask', 'MySQL', 'Bcrypt', 'RBAC', 'Anthropic API'],
+              features: [
+                { title: '// BCNF Database', desc: '9-table normalized schema with raw pymysql — no ORM, full control over join strategy and index design' },
+                { title: '// Bcrypt Security', desc: '12-round adaptive Bcrypt hashing — credentials never stored in plaintext, salt defeats rainbow tables' },
+                { title: '// Claude AI Chatbot', desc: 'Anthropic API integration for natural language ride recommendations — query in plain English, get ranked results' },
+                { title: '// Server-Side RBAC', desc: 'Driver/passenger role enforcement in Flask route handlers — no client-side trust' },
+              ],
+              stats: [{ n: '9', l: 'DB Tables' }, { n: 'BCNF', l: 'Normalized' }, { n: 'Jan–Apr 2026', l: 'Timeline' }],
+              steps: [
+                { n:'01', title: 'Schema Design', desc: 'Design 9-table BCNF schema — users, rides, bookings, ratings — resolving all functional dependencies in raw SQL.' },
+                { n:'02', title: 'Flask API', desc: 'Build RESTful backend with pymysql — parameterized raw SQL queries for all operations, no ORM.' },
+                { n:'03', title: 'Security Layer', desc: 'Implement Bcrypt password hashing (12 rounds), parameterized queries, and server-side RBAC.' },
+                { n:'04', title: 'Frontend', desc: 'Build HTML/CSS/JS frontend with real-time ride search, booking flow, and rating system.' },
+                { n:'05', title: 'Claude Integration', desc: 'Integrate Anthropic API chatbot for natural language ride recommendations from the booking interface.' },
+              ],
+              table: {
+                headers: ['Component', 'Role', 'Details'],
+                rows: [
+                  ['Flask Backend',    'API',      'RESTful endpoints with raw pymysql queries — no ORM, full SQL control'],
+                  ['MySQL Database',   'Storage',  '9-table BCNF schema — normalized to eliminate all functional dependency anomalies'],
+                  ['Bcrypt',           'Security', '12-round adaptive hashing — salted credentials, brute-force resistant'],
+                  ['RBAC',             'Access',   'Driver/passenger roles enforced server-side in Flask route handlers'],
+                  ['Anthropic Claude', 'AI',       'Natural language ride recommendation chatbot integrated into the booking flow'],
+                ],
+              },
+              diagram: `graph TD
+  A[User Request] --> B[Flask Route Handler]
+  B --> C{RBAC Check}
+  C -->|Driver| D[Driver Endpoints]
+  C -->|Passenger| E[Passenger Endpoints]
+  D & E --> F[pymysql Query Layer]
+  F --> G[MySQL - BCNF Schema]
+  G --> H[Query Result]
+  H --> I[JSON Response]
+  A -->|Natural Language| J[Anthropic Claude API]
+  J --> F`,
             }
           },
 
