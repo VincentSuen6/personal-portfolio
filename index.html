@@ -324,6 +324,26 @@
   .project-desc hr { border:none; border-top:1px solid var(--surface1); margin:28px 0; }
   .project-desc p { margin-bottom:12px; }
 
+  /* project link buttons */
+  .project-links { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:8px; }
+  .link-btn { display:inline-flex; align-items:center; gap:6px; padding:7px 18px; border-radius:20px; font-size:11px; font-weight:600; letter-spacing:0.06em; text-decoration:none; border:1px solid; transition:all 0.2s; }
+  .link-btn.github { border-color:var(--mauve); color:var(--mauve); }
+  .link-btn.github:hover { background:rgba(203,166,247,0.12); }
+  .link-btn.demo { border-color:var(--green); color:var(--green); }
+  .link-btn.demo:hover { background:rgba(166,227,161,0.12); }
+  .link-btn.paper { border-color:var(--yellow); color:var(--yellow); }
+  .link-btn.paper:hover { background:rgba(249,226,175,0.12); }
+
+  /* engineering challenges: problem → fix split cards */
+  .challenge-item { display:grid; grid-template-columns:1fr 1fr; border-radius:8px; overflow:hidden; border:1px solid var(--surface1); margin-bottom:10px; }
+  .challenge-side { padding:14px 18px; }
+  .challenge-side.problem { background:rgba(243,139,168,0.05); border-right:1px solid var(--surface1); }
+  .challenge-side.fix { background:rgba(166,227,161,0.05); }
+  .challenge-side-label { font-size:9px; letter-spacing:0.15em; font-weight:700; text-transform:uppercase; margin-bottom:7px; }
+  .challenge-side.problem .challenge-side-label { color:var(--red); }
+  .challenge-side.fix .challenge-side-label { color:var(--green); }
+  .challenge-side-text { font-size:11px; color:var(--subtext0); line-height:1.65; }
+
   @media(max-width:640px){
     #terminal-window.fullscreen { inset:0; border-radius:0; }
     #project-viewer { padding:20px; }
@@ -465,58 +485,101 @@ Parsed and categorized **400+ CVEs** by attack vector, complexity, privileges re
                 ],
               },
               diagram: `graph LR
-  S([START]) --> SF
+  S([▶ START]) --> SF
 
   subgraph SF["① sub_folder"]
-    SF1[parse_folder]
-    SF2[CVE CSV builder]
-    SF3[language detect]
+    direction TB
+    SF1["parse_folder<br/>CVE repo scan"]
+    SF2["cre-csv-builder<br/>400+ CVEs tagged"]
+    SF3["language-detect<br/>addingPrompts.py"]
+    SF1 --> SF2 --> SF3
   end
 
   SF --> PE
 
   subgraph PE["② poc_engine"]
-    PE1[PoC scaffold]
-    PE2[env setup]
+    direction TB
+    PE1["doc-builder-agent-2025<br/>PoC scaffold"]
+    PE2["env-setup<br/>build strategy select"]
+    PE1 --> PE2
   end
 
   PE --> PG
 
   subgraph PG["③ poc_generation"]
-    PG1[PoC synthesiser]
-    PG2[link status]
+    direction TB
+    PG1["poc-synthesiser<br/>LLM-generated PoC"]
+    PG2["link-status-check<br/>reference validation"]
+    PG1 --> PG2
   end
 
   PG --> EP
 
   subgraph EP["④ extract_and_patch"]
-    EP1[PATCH strategy]
-    EP2[EXTRA MATCH]
+    direction TB
+    EP1["patch-strategy<br/>diff + apply"]
+    EP2["extra-match<br/>fallback extraction"]
+    EP1 --> EP2
   end
 
   EP --> V
   EP --> RB
 
   subgraph V["⑤ validation"]
-    V1[sub-validate-agent]
-    V2[syntax check]
+    direction TB
+    V1["sub-validate-agent-1202<br/>primary assertion"]
+    V2["sub-validate-agent-1203<br/>secondary assertion"]
+    V3["syntax-check<br/>AST lint"]
+    V1 --> V2 --> V3
   end
 
   subgraph RB["⑥ rollback"]
-    RB1[checkpoint restore]
-    RB2[LLM diagnosis]
+    direction TB
+    RB1["checkpoint-restore<br/>Docker layer state"]
+    RB2["llm-diagnosis<br/>error root cause"]
+    RB3["retry-strategy<br/>patch + rebuild"]
+    RB1 --> RB2 --> RB3
   end
 
   V --> BE
   RB --> BE
 
   subgraph BE["⑦ build_and_exploit"]
-    BE1[parallel builder A]
-    BE2[parallel builder B]
+    direction TB
+    BE1["parallel-builder-A<br/>thread 1"]
+    BE2["parallel-builder-B<br/>thread 2"]
+    BE3["dockerfile-optimizer<br/>layer caching"]
+    BE1 & BE2 --> BE3
   end
 
-  BE --> DG[⑧ dockerfile_gen]
-  DG --> E([PoC Captured])`,
+  BE --> DG
+
+  subgraph DG["⑧ dockerfile_gen"]
+    direction TB
+    DG1["base-image-select<br/>Ubuntu / Alpine / Debian"]
+    DG2["dep-resolver<br/>apt + pip + cargo"]
+    DG3["exploit-capture<br/>CVSS + PoC record"]
+    DG1 --> DG2 --> DG3
+  end
+
+  DG --> E(["✓ PoC Captured — 86% success"])`,
+              challenges: [
+                {
+                  problem: 'C++ and Java builds failed 49% of the time — missing headers, version mismatches, and platform-specific linker errors that static pipelines could never anticipate.',
+                  fix: 'LangGraph agent diagnoses each failure using the raw build log, generates a targeted Dockerfile patch, and rolls back to the last checkpoint before retrying — no human in the loop.',
+                },
+                {
+                  problem: 'The LLM would sometimes propose fixes that introduced new errors, causing infinite retry loops and burning API budget with no convergence.',
+                  fix: 'Added a retry budget cap + exponential backoff per CVE. If the agent exceeds 3 fix attempts, it logs the failure state, snapshots the partial Dockerfile, and moves on — preserving throughput across the 400+ CVE corpus.',
+                },
+                {
+                  problem: 'Non-deterministic edge cases in language detection — CVEs often reference multiple affected products in different languages, making the build strategy ambiguous.',
+                  fix: 'Built addingPrompts.py: a language disambiguation module that scores each candidate language by PoC availability, repo file extensions, and CVE description keywords before routing.',
+                },
+              ],
+              links: [
+                { label: '⬡ GitHub', url: 'https://github.com/VincentSuen6', cls: 'github' },
+              ],
             }
           },
 
@@ -615,6 +678,23 @@ Every LLM recommendation and executed command is appended to an **immutable GitH
   AI --> AR["Active Response Agent\nClosed-Loop Remediation"]
   AR -->|"iptables / chmod / kill"| EP[Endpoint]
   AR --> GA`,
+              challenges: [
+                {
+                  problem: 'Wazuh and Elastic produce different alert schemas — merging them into a single normalized event for enrichment without losing source-specific context fields.',
+                  fix: 'Built a schema normalization layer in the Python Orchestrator that maps both alert formats to a canonical internal schema, preserving raw source fields in a passthrough object for Splunk.',
+                },
+                {
+                  problem: 'Alert fatigue: Claude was receiving hundreds of low-severity events per minute and generating remediation strategies for each, creating noise and burning API quota.',
+                  fix: 'Added a severity gating layer — only alerts scoring 7.0+ CVSS after enrichment are forwarded to Claude. Lower severity events are batched into a daily digest for trend analysis.',
+                },
+                {
+                  problem: 'The Active Response Agent could issue destructive commands (iptables DROP, kill -9) based on a mis-classified alert — no human review in a fully autonomous loop.',
+                  fix: 'Introduced a validation gate: every command Claude recommends is checked against a whitelist of allowed actions and a dry-run simulation before execution. Destructive commands require a confidence score above 0.92.',
+                },
+              ],
+              links: [
+                { label: '⬡ GitHub', url: 'https://github.com/VincentSuen6', cls: 'github' },
+              ],
             }
           },
 
@@ -698,6 +778,19 @@ Applies transformation rules to dictionary entries: **leet substitutions** (a→
   HA --> CMP{Match?}
   CMP -->|Yes| OUT["Result + stop_token\nclean thread teardown"]
   CMP -->|No| CP`,
+              challenges: [
+                {
+                  problem: 'Naïve threading with a shared work queue caused mutex contention that scaled worse than single-threaded at high core counts — the benchmark actually got slower adding cores.',
+                  fix: 'Switched to lock-free atomic chunk claiming: each thread independently increments a std::atomic<size_t> offset to claim its next chunk. No shared state, no contention — throughput now scales linearly with core count.',
+                },
+                {
+                  problem: 'Loading large wordlists (rockyou.txt at 140MB) into heap buffers added significant startup latency and doubled resident memory usage.',
+                  fix: 'Replaced fread into heap buffers with mmap — the OS maps the file directly into the process address space. Workers read from the mapped region with zero-copy overhead and startup drops from ~800ms to ~12ms.',
+                },
+              ],
+              links: [
+                { label: '⬡ GitHub', url: 'https://github.com/VincentSuen6', cls: 'github' },
+              ],
             }
           },
 
@@ -772,6 +865,15 @@ Full incident response drills from initial detection through containment — usi
   F --> I[Scheduled Tasks]
   F --> J[Service Persistence]
   G & H & I & J --> K[IR Analysis and Report]`,
+              challenges: [
+                {
+                  problem: 'Endpoints re-enrolled with a new client ID after each reboot because the YAML config was using a dynamic hostname instead of a pinned certificate thumbprint for identity.',
+                  fix: 'Regenerated client configs with a fixed client_id derived from the machine\'s hardware UUID and pinned the server certificate thumbprint. Endpoints now maintain stable identities across reboots without re-enrollment.',
+                },
+              ],
+              links: [
+                { label: '⬡ GitHub', url: 'https://github.com/VincentSuen6', cls: 'github' },
+              ],
             }
           },
 
@@ -855,6 +957,19 @@ Docker volume mounts preserve intelligence layers and custom heatmaps across con
   NAV --> GAP["Coverage Gap Analysis\nUncovered Techniques"]
 
   HM & GAP --> PQ["Detection Priority Queue\nActionable Roadmap"]`,
+              challenges: [
+                {
+                  problem: 'Manually mapping ATT&CK techniques from prose threat reports took hours per report — the text describes behaviours but not T-codes, so nothing auto-maps.',
+                  fix: 'Built a keyword-to-TTP lookup table seeded from MITRE\'s own technique descriptions. Feed the threat report through a Python extractor → generates a JSON layer file for Navigator import in seconds.',
+                },
+                {
+                  problem: 'TAXII feeds return raw STIX bundles with nested relationship objects. ATT&CK technique IDs are buried inside relationship edges, not in the indicator objects themselves.',
+                  fix: 'Wrote a STIX relationship walker that traverses the bundle graph from indicator → relationship → attack-pattern objects to extract T-codes, then flattens them into a single technique list for Navigator.',
+                },
+              ],
+              links: [
+                { label: '⬡ GitHub', url: 'https://github.com/VincentSuen6', cls: 'github' },
+              ],
             }
           },
 
@@ -925,6 +1040,16 @@ Test and iterate on security automation scripts in a repeatable environment wher
   F -->|No| H[Refine Query]
   G --> E
   H --> E`,
+              challenges: [
+                {
+                  problem: 'Early SPL detection rules triggered on nearly every HTTP 4xx response — legitimate scanners, health checks, and crawler traffic all matched the same signatures as attack traffic.',
+                  fix: 'Layered in a whitelist suppression stage and added rare-source correlation: alert only fires if the same source IP generates 4xx events across three or more distinct paths within a 60-second window.',
+                },
+                {
+                  problem: 'Kali attack traffic on the same host as Splunk meant the monitoring segment could pick up attacker network flows as Splunk\'s own outbound traffic — false attribution in logs.',
+                  fix: 'Moved Splunk to a dedicated VM with a static management IP excluded from detection scope. Set Universal Forwarder to tag all events with segment metadata so source attribution is unambiguous.',
+                },
+              ],
             }
           },
 
@@ -1015,6 +1140,19 @@ Every inference request is logged:
 
   OUT --> LOG["SQL Logger\ntimestamp / hash / confidence"]
   LOG --> TRK["Accuracy Tracking\nDrift Detection"]`,
+              challenges: [
+                {
+                  problem: 'Fine-tuning the full ConvNeXt model caused catastrophic forgetting — the model overfit to Pokémon distribution and lost generalization, dropping validation accuracy from 92% to 71% in 3 epochs.',
+                  fix: 'Switched to feature extraction mode: froze the convolutional backbone and only trained the classifier head for the first 10 epochs, then progressively unfroze the top blocks with a lower learning rate (1e-5 vs 1e-3).',
+                },
+                {
+                  problem: 'Flask\'s synchronous request handling caused inference queue build-up under concurrent load — image preprocessing and model forward pass blocked the event loop.',
+                  fix: 'Moved model inference to a background thread pool using concurrent.futures.ThreadPoolExecutor. Flask remains non-blocking; requests are dispatched to the pool and results returned async.',
+                },
+              ],
+              links: [
+                { label: '⬡ GitHub', url: 'https://github.com/VincentSuen6', cls: 'github' },
+              ],
             }
           },
 
@@ -1084,6 +1222,19 @@ This mirrors automated IR playbook execution — detecting a failed step and fal
   H -->|Yes| I[React Frontend]
   H -->|Blocked| J[Agentic Re-Router]
   J --> G`,
+              challenges: [
+                {
+                  problem: 'Sequential API calls to disaster-events, road-conditions, and hazard-zone endpoints stacked their latencies — with each call averaging 400ms, total wait time exceeded 1.2s before route calculation could begin.',
+                  fix: 'Replaced sequential calls with asyncio.gather() fan-out: all three APIs are queried simultaneously. Aggregation waits on the slowest responder, dropping total pre-routing latency from ~1.2s to ~420ms — the 40% improvement.',
+                },
+                {
+                  problem: 'When one data source returned stale or unavailable data, the route calculator silently used partial data and produced invalid routes without indicating the data quality issue.',
+                  fix: 'Added a data quality gate before route calculation: each source response is timestamped and validated. If any source is stale beyond a threshold, the agentic re-router activates with a degraded-mode fallback strategy.',
+                },
+              ],
+              links: [
+                { label: '⬡ GitHub', url: 'https://github.com/VincentSuen6', cls: 'github' },
+              ],
             }
           },
 
@@ -1168,6 +1319,19 @@ Privacy compliance was a first-class requirement from day one, not bolted on aft
   SR -->|Role Invalid| DENY["403 Rejected\nNo Data Returned"]
   DATA --> LOG
   DATA -->|Minimised Response| APP`,
+              challenges: [
+                {
+                  problem: 'React Native\'s AsyncStorage is unencrypted by default — storing session tokens or role claims there would expose them to any process with filesystem access on a rooted device.',
+                  fix: 'Moved all sensitive state to Firebase Auth JWTs stored in-memory only. Role claims are re-fetched from Firestore on each app session, never persisted client-side. Rooting the device grants no persistent auth material.',
+                },
+                {
+                  problem: 'Firestore security rules were complex enough that it was hard to verify they correctly blocked all unauthorized access patterns — unit testing security rules requires running them against the emulator.',
+                  fix: 'Set up the Firebase Local Emulator and wrote a suite of security rule tests covering every role/resource combination (driver reads, passenger writes, admin overrides). Caught 3 logic gaps before production deploy.',
+                },
+              ],
+              links: [
+                { label: '⬡ GitHub', url: 'https://github.com/VincentSuen6', cls: 'github' },
+              ],
             }
           },
 
@@ -1260,6 +1424,19 @@ Integrated **Anthropic Claude** for intelligent ride recommendations — accepts
   CL --> PQ
   PQ --> DB
   DB --> BR`,
+              challenges: [
+                {
+                  problem: 'BCNF normalization across 9 tables introduced multi-join queries that hit 800ms+ on ride search — the bookings→rides→users join across three tables with no indexes was the bottleneck.',
+                  fix: 'Added composite indexes on (ride_id, passenger_id) in the bookings table and (departure_time, origin) in rides. Ride search queries dropped from ~800ms to ~40ms. Explained with EXPLAIN ANALYZE before and after.',
+                },
+                {
+                  problem: 'The Claude chatbot was receiving the full ride table in its context to match natural language queries — this leaked all PII (user names, emails, phone numbers) to the LLM on every request.',
+                  fix: 'Pre-filter candidate rides using SQL before passing to Claude: run a keyword-matched SQL query first, then pass only anonymized ride fields (origin, destination, time, seats) to the Claude context — no PII ever reaches the model.',
+                },
+              ],
+              links: [
+                { label: '⬡ GitHub', url: 'https://github.com/VincentSuen6', cls: 'github' },
+              ],
             }
           },
 
@@ -2025,6 +2202,18 @@ function buildHTML(d) {
       <div class="section-label">// architecture</div>
       <div class="diagram-wrap"><div class="mermaid">${d.diagram}</div></div>
       <div class="divider"></div>`:''}
+    ${d.links&&d.links.length?`
+      <div class="section-label">// links</div>
+      <div class="project-links">${d.links.map(l=>`<a href="${l.url}" target="_blank" class="link-btn ${l.cls}">${l.label}</a>`).join('')}</div>
+      <div class="divider"></div>`:''}
+    ${d.challenges&&d.challenges.length?`
+      <div class="section-label">// engineering challenges</div>
+      <div>${d.challenges.map(c=>`
+        <div class="challenge-item">
+          <div class="challenge-side problem"><div class="challenge-side-label">✗ the problem</div><div class="challenge-side-text">${esc(c.problem)}</div></div>
+          <div class="challenge-side fix"><div class="challenge-side-label">✓ the fix</div><div class="challenge-side-text">${esc(c.fix)}</div></div>
+        </div>`).join('')}
+      </div><div class="divider"></div>`:''}
     ${d.tech.length?`<div class="section-label">// tech stack</div><div class="tech-stack">${tech}</div>`:''}
     ${d.features.length?`<div class="section-label">// details</div><div class="feature-grid">${feats}</div>`:''}
     <div class="divider" style="margin-top:40px"></div>
