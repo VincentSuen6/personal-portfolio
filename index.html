@@ -7,6 +7,7 @@
 <link rel="icon" type="image/png" href="Gemini_Generated_Image_o2l9n6o2l9n6o2l9.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
 <style>
   :root {
     --base: #1e1e2e;
@@ -282,6 +283,28 @@
   #project-viewer::-webkit-scrollbar { width:4px; }
   #project-viewer::-webkit-scrollbar-thumb { background:var(--surface1); border-radius:2px; }
 
+  /* journey timeline */
+  .journey { display:flex; flex-direction:column; margin-bottom:8px; }
+  .journey-step { display:flex; gap:16px; position:relative; padding-bottom:20px; }
+  .journey-step:last-child { padding-bottom:0; }
+  .journey-step:not(:last-child)::after { content:''; position:absolute; left:17px; top:38px; bottom:0; width:1px; background:var(--surface1); }
+  .journey-num { width:35px; height:35px; border-radius:50%; background:var(--surface0); border:1px solid var(--surface1); display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; color:var(--mauve); font-family:'JetBrains Mono',monospace; flex-shrink:0; }
+  .journey-title { font-size:13px; font-weight:600; color:var(--text); margin-bottom:3px; padding-top:6px; }
+  .journey-desc  { font-size:12px; color:var(--subtext0); line-height:1.65; }
+
+  /* component table */
+  .comp-table-wrap { background:var(--surface0); border:1px solid var(--surface1); border-radius:8px; overflow:hidden; margin-bottom:8px; }
+  .comp-table { width:100%; border-collapse:collapse; font-size:12px; }
+  .comp-table th { text-align:left; color:var(--overlay0); font-weight:600; letter-spacing:0.1em; text-transform:uppercase; font-size:10px; padding:10px 14px; border-bottom:1px solid var(--surface1); }
+  .comp-table td { padding:10px 14px; border-bottom:1px solid var(--surface0); color:var(--subtext1); line-height:1.5; vertical-align:top; }
+  .comp-table td:first-child { color:var(--green); font-family:'JetBrains Mono',monospace; font-size:11px; white-space:nowrap; }
+  .comp-table td:nth-child(2) { color:var(--peach); font-size:11px; white-space:nowrap; }
+  .comp-table tr:last-child td { border-bottom:none; }
+
+  /* mermaid diagram */
+  .diagram-wrap { background:var(--mantle); border:1px solid var(--surface1); border-radius:8px; padding:24px 16px; margin-bottom:8px; overflow-x:auto; }
+  .diagram-wrap .mermaid { display:flex; justify-content:center; }
+
   @media(max-width:640px){
     #terminal-window.fullscreen { inset:0; border-radius:0; }
     #project-viewer { padding:20px; }
@@ -325,6 +348,17 @@
 </div>
 
 <script>
+mermaid.initialize({
+  startOnLoad: false, theme: 'dark',
+  themeVariables: {
+    darkMode: true, background: '#181825', primaryColor: '#313244',
+    primaryTextColor: '#cdd6f4', primaryBorderColor: '#45475a',
+    lineColor: '#585b70', secondaryColor: '#1e1e2e', tertiaryColor: '#11111b',
+    edgeLabelBackground: '#181825', fontFamily: "'JetBrains Mono', monospace",
+  },
+  flowchart: { curve: 'basis', htmlLabels: true }
+});
+
 // ============================================================
 // FILE SYSTEM DATA
 // ============================================================
@@ -378,6 +412,36 @@ A processing engine parsed and categorized 400+ distinct CVEs to determine explo
                 { title: '// Trend Micro Proposal', desc: 'Proposed to Trend Micro for integration into zero-day to n-day lifecycle management workflows' },
               ],
               stats: [{ n: '86%', l: 'Build Success' }, { n: '400+', l: 'CVEs Processed' }, { n: 'Jan 2026–', l: 'Timeline' }],
+              steps: [
+                { n:'01', title: 'CVE Corpus Ingestion', desc: '400+ CVEs parsed and classified by attack vector, affected language, complexity, and proof-of-concept availability.' },
+                { n:'02', title: 'Language Detection', desc: 'Universal language detector reads CVE metadata and routes each entry to the correct build strategy — Python, C++, Java, or generic.' },
+                { n:'03', title: 'Deterministic Scaffolding', desc: 'Environment scaffolder sets up the base OS image, resolves dependencies, and captures a Docker checkpoint before any build is attempted.' },
+                { n:'04', title: 'Build Attempt', desc: 'Pipeline executes the build. On success, the PoC is captured. On failure, build error context is handed to the LLM agent.' },
+                { n:'05', title: 'LLM-Driven Recovery', desc: 'LangGraph agent diagnoses the failure, generates a targeted fix, rolls back to checkpoint, applies the patch, and retries — achieving 86% vs 51% baseline.' },
+              ],
+              table: {
+                headers: ['Component', 'Type', 'Responsibility'],
+                rows: [
+                  ['Language Detector',   'Deterministic', 'Reads CVE metadata and routes to the correct build strategy (Python, C++, Java)'],
+                  ['Env Scaffolder',      'Deterministic', 'Sets up base OS image, resolves package dependencies, captures Docker checkpoint'],
+                  ['Build Pipeline',      'Deterministic', 'Executes build with known dependency patterns and resolution strategies'],
+                  ['LLM Agent (LangGraph)','Agentic',      'Diagnoses build failures, generates fix strategies for non-deterministic edge cases'],
+                  ['Rollback System',     'Deterministic', 'Restores checkpoint, applies agent-generated fix, and retries the build'],
+                ],
+              },
+              diagram: `graph TD
+  A[CVE Metadata] --> B[Language Detector]
+  B --> C{Build Strategy}
+  C -->|Python / JS| D[Python Agent]
+  C -->|C++ / Java| E[C++ / Java Agent]
+  D --> F[Docker Build]
+  E --> F
+  F --> G{Success?}
+  G -->|Yes| H[PoC Captured]
+  G -->|No| I[LLM Agent]
+  I --> J[Diagnose Error]
+  J --> K[Rollback Checkpoint]
+  K --> F`,
             }
           },
 
@@ -404,6 +468,32 @@ The result is linear throughput scaling with core count — adding cores gives p
                 { title: '// 4 Hash Algorithms', desc: 'MD5, SHA1, SHA256, SHA512 — modular design allows adding new algorithms without core changes' },
               ],
               stats: [{ n: '4', l: 'Hash Algorithms' }, { n: 'Linear', l: 'Core Scaling' }, { n: 'Mar 2026–', l: 'Timeline' }],
+              steps: [
+                { n:'01', title: 'Wordlist Ingestion via mmap', desc: 'Wordlist file is memory-mapped directly into the process address space — no heap allocation, zero copy overhead.' },
+                { n:'02', title: 'Atomic Work Partitioning', desc: 'Buffer split into chunks claimed by worker threads via std::atomic — no mutex contention on the hot path.' },
+                { n:'03', title: 'Parallel Hash Computation', desc: 'Each std::jthread independently computes hashes (MD5 / SHA1 / SHA256 / SHA512) and compares against the target.' },
+                { n:'04', title: 'Match & Clean Exit', desc: 'First thread to match writes the result. All others receive a stop_token cancellation signal for clean teardown.' },
+              ],
+              table: {
+                headers: ['Attack Mode', 'Strategy', 'Details'],
+                rows: [
+                  ['Dictionary',  'Wordlist scan', 'Iterates known password lists with mmap zero-copy loading'],
+                  ['Brute Force', 'Enumeration',   'Generates all combinations for a given charset and length range'],
+                  ['Rule-Based',  'Mutation',      'Applies leet substitutions, suffix/prefix appending, and case toggling to dictionary entries'],
+                ],
+              },
+              diagram: `graph LR
+  A[Wordlist File] -->|mmap| B[Memory-Mapped Buffer]
+  B --> C[Chunk Partitioner]
+  C -->|atomic claim| D[Thread 1]
+  C -->|atomic claim| E[Thread 2]
+  C -->|atomic claim| F[Thread N]
+  D --> G[Hash Engine]
+  E --> G
+  F --> G
+  G --> H{Match?}
+  H -->|Yes| I[Result]
+  H -->|No| C`,
             }
           },
 
@@ -1238,6 +1328,8 @@ function enterViewMode(data) {
   content.innerHTML=buildHTML(data);
   viewer.style.display='flex';
   requestAnimationFrame(()=>viewer.classList.add('faded-in'));
+  const diagNodes=content.querySelectorAll('.mermaid');
+  if(diagNodes.length) mermaid.run({ nodes: diagNodes });
   const term=document.getElementById('terminal-window');
   term.classList.remove('fullscreen','minimized','overlay'); term.classList.add('hidden');
   termVisible=false; input.disabled=true; input.value=''; input.blur();
@@ -1305,6 +1397,24 @@ function buildHTML(d) {
     <div class="section-label">// overview</div>
     <div class="project-desc" style="white-space:pre-line">${esc(d.description)}</div>
     ${d.stats.length?`<div class="stat-row">${stats}</div><div class="divider"></div>`:''}
+    ${d.steps&&d.steps.length?`
+      <div class="section-label">// approach</div>
+      <div class="journey">${d.steps.map(s=>`
+        <div class="journey-step">
+          <div class="journey-num">${s.n}</div>
+          <div><div class="journey-title">${esc(s.title)}</div><div class="journey-desc">${esc(s.desc)}</div></div>
+        </div>`).join('')}
+      </div><div class="divider"></div>`:''}
+    ${d.table?`
+      <div class="section-label">// components</div>
+      <div class="comp-table-wrap"><table class="comp-table">
+        <thead><tr>${d.table.headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead>
+        <tbody>${d.table.rows.map(r=>`<tr>${r.map(c=>`<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody>
+      </table></div><div class="divider"></div>`:''}
+    ${d.diagram?`
+      <div class="section-label">// architecture</div>
+      <div class="diagram-wrap"><div class="mermaid">${d.diagram}</div></div>
+      <div class="divider"></div>`:''}
     ${d.tech.length?`<div class="section-label">// tech stack</div><div class="tech-stack">${tech}</div>`:''}
     ${d.features.length?`<div class="section-label">// details</div><div class="feature-grid">${feats}</div>`:''}
     <div class="divider" style="margin-top:40px"></div>
