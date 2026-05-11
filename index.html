@@ -464,19 +464,157 @@ Parsed and categorized **400+ CVEs** by attack vector, complexity, privileges re
                   ['Rollback System',     'Deterministic', 'Restores checkpoint, applies agent-generated fix, and retries the build'],
                 ],
               },
+              diagram: `graph LR
+  S([START]) --> SF
+
+  subgraph SF["① sub_folder"]
+    SF1[parse_folder]
+    SF2[CVE CSV builder]
+    SF3[language detect]
+  end
+
+  SF --> PE
+
+  subgraph PE["② poc_engine"]
+    PE1[PoC scaffold]
+    PE2[env setup]
+  end
+
+  PE --> PG
+
+  subgraph PG["③ poc_generation"]
+    PG1[PoC synthesiser]
+    PG2[link status]
+  end
+
+  PG --> EP
+
+  subgraph EP["④ extract_and_patch"]
+    EP1[PATCH strategy]
+    EP2[EXTRA MATCH]
+  end
+
+  EP --> V
+  EP --> RB
+
+  subgraph V["⑤ validation"]
+    V1[sub-validate-agent]
+    V2[syntax check]
+  end
+
+  subgraph RB["⑥ rollback"]
+    RB1[checkpoint restore]
+    RB2[LLM diagnosis]
+  end
+
+  V --> BE
+  RB --> BE
+
+  subgraph BE["⑦ build_and_exploit"]
+    BE1[parallel builder A]
+    BE2[parallel builder B]
+  end
+
+  BE --> DG[⑧ dockerfile_gen]
+  DG --> E([PoC Captured])`,
+            }
+          },
+
+          'sentinel-soar': {
+            type: 'file',
+            data: {
+              title: 'Sentinel SOAR — Autonomous Multi-SIEM Intelligence Pipeline',
+              subtitle: 'Wazuh + Elastic + Splunk + Claude AI — closed-loop threat detection and remediation',
+              tags: [
+                { label: 'SOAR', cls: 'tag-red' },
+                { label: 'Anthropic API', cls: 'tag-mauve' },
+                { label: 'Active', cls: 'tag-green' },
+              ],
+              description: `## Executive Summary
+A **Security Orchestration, Automation and Response (SOAR)** pipeline integrating Wazuh EDR, Elastic SIEM, and Splunk HEC with enrichment from six external threat intel sources. **Claude AI** maps alerts to CVEs, generates remediation strategies, and an Active Response Agent executes validated commands — maintaining a cryptographically immutable forensic audit trail throughout.
+
+## Telemetry Collection
+Three complementary collection layers feed the pipeline:
+- **Wazuh EDR** — host-based detection: file integrity monitoring, rootkit detection, registry changes, process injection
+- **Elastic SIEM** — network-level: Sysmon events, east-west traffic, lateral movement detection
+- **Docker container logs** — containerized service telemetry for escape and anomalous spawn detection
+
+## Threat Intelligence Enrichment
+Every alert and observable is enriched against six external sources before analysis:
+- **AbuseIPDB** — IP reputation scoring and abuse confidence rating
+- **TAXII / STIX** — structured threat intel feeds (ATT&CK, ISACs, government feeds)
+- **VirusTotal** — file hash and URL reputation across 70+ AV engines
+- **OTX AlienVault** — open threat exchange — IOC correlation and pulse matching
+- **MISP** — malware information sharing platform — community threat data
+- **Shodan** — asset exposure context for IPs observed in alerts
+
+## Claude AI Analyst
+Enriched alerts are passed to Claude with full context — telemetry, enrichment data, MITRE ATT&CK mapping, and historical incidents. Claude generates:
+1. **CVE mapping** — links observable TTPs to known vulnerabilities
+2. **Remediation strategy** — specific validated commands (iptables, chmod, kill) with reasoning
+3. **Triage priority** — risk score considering asset criticality and threat actor profile
+
+> Design constraint: Claude recommends, pipeline validates, agent executes. No command runs without a validation gate — prevents destructive actions under adversarial conditions.
+
+## Forensic Audit Trail
+Every LLM recommendation and executed command is appended to an **immutable GitHub ledger** — signed commits provide a tamper-evident forensic record of every autonomous decision.`,
+              tech: ['Wazuh', 'Elastic', 'Splunk', 'Docker', 'Python', 'Anthropic API', 'AbuseIPDB', 'TAXII/STIX', 'VirusTotal', 'MISP'],
+              features: [
+                { title: '// 6-Source Enrichment', desc: 'AbuseIPDB · TAXII/STIX · VirusTotal · OTX AlienVault · MISP · Shodan — every alert enriched before analysis' },
+                { title: '// Claude AI Analyst', desc: 'CVE mapping, remediation strategy generation, and triage prioritization — full alert context passed to Claude' },
+                { title: '// Closed-Loop Remediation', desc: 'Active Response Agent executes validated commands autonomously — iptables, chmod, process kill' },
+                { title: '// Immutable Audit Trail', desc: 'Signed GitHub commits for every AI recommendation and executed action — tamper-evident forensic record' },
+              ],
+              stats: [{ n: '6', l: 'Intel Sources' }, { n: 'Claude', l: 'AI Analyst' }, { n: 'Mar 2026–', l: 'Timeline' }],
+              steps: [
+                { n:'01', title: 'EDR & SIEM Deployment', desc: 'Deploy Wazuh agents and Elastic SIEM across endpoints for host and network telemetry collection.' },
+                { n:'02', title: 'Threat Intel Integration', desc: 'Connect AbuseIPDB, TAXII, VirusTotal, OTX, MISP, and Shodan APIs to the enrichment engine.' },
+                { n:'03', title: 'Python Orchestration Layer', desc: 'Build middleware to ingest telemetry, enrich observables, route events to Splunk HEC by severity.' },
+                { n:'04', title: 'Claude AI Integration', desc: 'Wire enriched alert context to Claude API for CVE mapping, remediation generation, and triage scoring.' },
+                { n:'05', title: 'Active Response + Audit', desc: 'Deploy response agent with validation gate, append every action to immutable GitHub forensic ledger.' },
+              ],
+              table: {
+                headers: ['Component', 'Layer', 'Responsibility'],
+                rows: [
+                  ['Wazuh EDR',          'Telemetry',    'Host-based detection — FIM, rootkit, registry, process injection monitoring'],
+                  ['Elastic SIEM',        'Telemetry',    'Network-level detection — Sysmon, east-west traffic, lateral movement'],
+                  ['Python Orchestrator', 'Processing',   'Ingests telemetry, coordinates enrichment, routes to Splunk HEC by severity'],
+                  ['Enrichment Engine',   'Intel',        'Queries AbuseIPDB, VirusTotal, OTX, MISP, TAXII, Shodan per observable'],
+                  ['Splunk HEC',          'Analytics',    'Forensic dashboards, detection rule evaluation, MITRE ATT&CK correlation'],
+                  ['Claude AI Analyst',   'Reasoning',    'CVE mapping, remediation strategy gen, triage priority scoring'],
+                  ['Response Agent',      'Execution',    'Validated closed-loop remediation — iptables, chmod, process kill'],
+                  ['GitHub Audit Ledger', 'Compliance',   'Signed, immutable forensic record of every AI decision and executed command'],
+                ],
+              },
               diagram: `graph TD
-  A[CVE Metadata] --> B[Language Detector]
-  B --> C{Build Strategy}
-  C -->|Python / JS| D[Python Agent]
-  C -->|C++ / Java| E[C++ / Java Agent]
-  D --> F[Docker Build]
-  E --> F
-  F --> G{Success?}
-  G -->|Yes| H[PoC Captured]
-  G -->|No| I[LLM Agent]
-  I --> J[Diagnose Error]
-  J --> K[Rollback Checkpoint]
-  K --> F`,
+  subgraph TEL["SECURITY TELEMETRY"]
+    W["Wazuh EDR\nHost / FIM / Rootkit"]
+    EL["Elastic SIEM\nNetwork / Sysmon"]
+    DK["Docker Containers\nContainerized Logs"]
+  end
+
+  subgraph INTEL["THREAT INTEL FEEDS"]
+    AB[AbuseIPDB]
+    TX[TAXII / STIX]
+    VT[VirusTotal]
+    OT[OTX AlienVault]
+    MI[MISP]
+    SH[Shodan]
+  end
+
+  TEL --> OR["Python Log Orchestrator"]
+  INTEL --> EN["Data Enrichment Engine"]
+  OR <--> EN
+
+  OR --> SP["Splunk SIEM - HEC\nForensics and Dashboards"]
+  OR --> GA["GitHub Audit Ledger\nImmutable Forensic Record"]
+
+  SP --> AI
+  GA --> AI["Claude AI Analyst\nCVE Mapping and Strategy Gen"]
+
+  AI --> AR["Active Response Agent\nClosed-Loop Remediation"]
+  AR -->|"iptables / chmod / kill"| EP[Endpoint]
+  AR --> GA`,
             }
           },
 
@@ -538,17 +676,28 @@ Applies transformation rules to dictionary entries: **leet substitutions** (a→
                 ],
               },
               diagram: `graph LR
-  A[Wordlist File] -->|mmap| B[Memory-Mapped Buffer]
-  B --> C[Chunk Partitioner]
-  C -->|atomic claim| D[Thread 1]
-  C -->|atomic claim| E[Thread 2]
-  C -->|atomic claim| F[Thread N]
-  D --> G[Hash Engine]
-  E --> G
-  F --> G
-  G --> H{Match?}
-  H -->|Yes| I[Result]
-  H -->|No| C`,
+  subgraph IN["INPUT"]
+    WL["Wordlist File"]
+    TGT["Target Hash"]
+  end
+
+  WL -->|mmap zero-copy| BUF["Memory-Mapped Buffer\nno heap allocation"]
+  TGT --> HE
+
+  subgraph PART["LOCK-FREE PARTITIONER"]
+    BUF --> CP["Chunk Partitioner"]
+    CP -->|atomic claim| T1["Thread 1\nstd::jthread"]
+    CP -->|atomic claim| T2["Thread 2\nstd::jthread"]
+    CP -->|atomic claim| TN["Thread N\nstd::jthread"]
+  end
+
+  subgraph HE["HASH ENGINE"]
+    T1 & T2 & TN --> HA["MD5 / SHA1\nSHA256 / SHA512"]
+  end
+
+  HA --> CMP{Match?}
+  CMP -->|Yes| OUT["Result + stop_token\nclean thread teardown"]
+  CMP -->|No| CP`,
             }
           },
 
@@ -685,15 +834,27 @@ Docker volume mounts preserve intelligence layers and custom heatmaps across con
                 ],
               },
               diagram: `graph TD
-  A[Threat Intel Reports] --> B[ATT&CK TTP Mapping]
-  C[TAXII Feed] -->|STIX Format| B
-  B --> D[ATT&CK Navigator]
-  E[Existing Detection Rules] --> F[Coverage Layer]
-  F --> D
-  D --> G[APT Heatmap]
-  D --> H[Coverage Gap Analysis]
-  H --> I[Detection Priority Queue]
-  G --> I`,
+  subgraph SRC["INTELLIGENCE SOURCES"]
+    TR["Threat Intel Reports"]
+    TX["TAXII Feed - STIX"]
+    IR["Incident Data"]
+  end
+
+  subgraph DET["EXISTING DEFENCES"]
+    DR["Detection Rules"]
+    SL["SIEM Logs"]
+  end
+
+  SRC --> MAP["ATT&CK TTP Mapper"]
+  DET --> COV["Coverage Layer"]
+
+  MAP --> NAV["ATT&CK Navigator\nDockerized Instance"]
+  COV --> NAV
+
+  NAV --> HM["APT Heatmap\nTechnique Frequency Overlay"]
+  NAV --> GAP["Coverage Gap Analysis\nUncovered Techniques"]
+
+  HM & GAP --> PQ["Detection Priority Queue\nActionable Roadmap"]`,
             }
           },
 
@@ -828,14 +989,32 @@ Every inference request is logged:
                 ],
               },
               diagram: `graph LR
-  A[Image Input] --> B[Preprocessing]
-  B --> C[ConvNeXt Model]
-  C --> D[Softmax Layer]
-  D --> E[Class + Confidence]
-  E --> F[Flask API Response]
-  E --> G[SQL Logger]
-  G --> H[Accuracy Tracking]
-  G --> I[Retraining Dataset]`,
+  subgraph DATA["TRAINING PIPELINE"]
+    DS["10k+ Image Dataset"]
+    AUG["Augmentation\nflip / crop / colour jitter"]
+    DS --> AUG
+  end
+
+  AUG --> MODEL
+
+  subgraph MODEL["CONVNEXT MODEL"]
+    PT["ImageNet Pre-trained\nWeights"]
+    FT["Fine-tuned on\nPokémon Dataset"]
+    PT --> FT
+  end
+
+  FT -->|92% accuracy| API
+
+  subgraph API["INFERENCE API"]
+    EP["POST /predict\nFlask Endpoint"]
+    PRE["Preprocessing\nresize / normalize"]
+    OUT["Class + Confidence\nunder 200ms"]
+    EP --> PRE --> FT
+    FT --> OUT
+  end
+
+  OUT --> LOG["SQL Logger\ntimestamp / hash / confidence"]
+  LOG --> TRK["Accuracy Tracking\nDrift Detection"]`,
             }
           },
 
@@ -908,81 +1087,6 @@ This mirrors automated IR playbook execution — detecting a failed step and fal
             }
           },
 
-          'soar-pipeline': {
-            type: 'file',
-            data: {
-              title: 'Autonomous SOAR Pipeline',
-              subtitle: 'Wazuh EDR + Splunk + Elastic SIEM — LLM-driven incident response with forensic audit trail',
-              tags: [
-                { label: 'SOAR', cls: 'tag-red' },
-                { label: 'Anthropic API', cls: 'tag-mauve' },
-                { label: 'Active', cls: 'tag-green' },
-              ],
-              description: `## Executive Summary
-A **Security Orchestration, Automation and Response (SOAR)** pipeline integrating Wazuh EDR, Splunk HEC, and Elastic SIEM to automate threat detection, log correlation, and real-time remediation. **LLM-driven reasoning via the Anthropic API** automates incident response decisions while maintaining a forensic audit trail for every executed command.
-
-## Architecture
-Three components connected by a Python middleware layer:
-- **Wazuh EDR** — endpoint telemetry (process events, registry changes, network connections)
-- **Splunk HEC** — high-throughput log aggregation and correlation
-- **Elastic SIEM** — detection rule evaluation and alert generation
-
-The middleware ingests containerized telemetry, routes events to the appropriate SIEM by type and severity, and triggers the LLM response engine on high-severity alerts.
-
-## LLM-Driven Incident Response
-When a high-severity alert fires, the Anthropic API evaluates the alert context and recommends validated remediation commands. The pipeline executes them after a validation check — **no command runs without validation**.
-
-> Key design constraint: the LLM recommends, the pipeline validates, the system executes. This prevents destructive actions while still enabling autonomous response.
-
-Every command and its rationale is logged to an **immutable forensic audit trail** on GitHub — full accountability for every automated action.
-
-## Advanced TTP Detection
-The multi-vector detection engine captures:
-- **T1547.001** — Registry Run Keys persistence via Wazuh registry monitoring
-- **Multi-stage droppers** — correlated across log sources to detect staged payload delivery
-- **Containerized telemetry** — Python middleware processes Docker container logs for escape detection`,
-              tech: ['Wazuh', 'Splunk', 'Elastic', 'Docker', 'Python', 'Anthropic API'],
-              features: [
-                { title: '// SOAR Pipeline', desc: 'Wazuh EDR + Splunk HEC + Elastic SIEM — automated threat detection, log correlation, and real-time remediation' },
-                { title: '// LLM Response Engine', desc: 'Anthropic API evaluates alerts and recommends validated remediation — iptables, chmod, process termination' },
-                { title: '// Forensic Audit Trail', desc: 'Every AI-recommended and executed command logged immutably to GitHub — full accountability' },
-                { title: '// Advanced TTP Detection', desc: 'T1547.001 registry persistence, multi-stage droppers, containerized telemetry ingestion via Python middleware' },
-              ],
-              stats: [{ n: 'SOAR', l: 'Pipeline' }, { n: 'Anthropic', l: 'LLM Engine' }, { n: 'Mar 2026–', l: 'Timeline' }],
-              steps: [
-                { n:'01', title: 'EDR Deployment', desc: 'Deploy Wazuh agents across endpoints for process, registry, and network telemetry collection.' },
-                { n:'02', title: 'SIEM Integration', desc: 'Configure Splunk HEC ingestion pipeline and Elastic SIEM detection rule deployment.' },
-                { n:'03', title: 'Python Middleware', desc: 'Build middleware to route containerized telemetry to the appropriate SIEM by type and severity.' },
-                { n:'04', title: 'LLM Response Engine', desc: 'Integrate Anthropic API for alert analysis and validated remediation command generation.' },
-                { n:'05', title: 'Forensic Audit Trail', desc: 'Implement immutable logging of all AI-recommended and executed commands to GitHub audit trail.' },
-              ],
-              table: {
-                headers: ['Component', 'Type', 'Responsibility'],
-                rows: [
-                  ['Wazuh EDR',       'Detection',     'Endpoint telemetry — process events, registry changes, network connections'],
-                  ['Splunk HEC',      'Aggregation',   'High-throughput log ingestion and cross-source event correlation'],
-                  ['Elastic SIEM',    'Detection',     'Rule evaluation, alert generation, MITRE ATT&CK-mapped TTP detection'],
-                  ['Python Middleware','Orchestration', 'Routes containerized telemetry, triggers LLM response on high-severity alerts'],
-                  ['Anthropic API',   'Reasoning',     'LLM-driven alert analysis and validated remediation command recommendation'],
-                  ['Audit Logger',    'Compliance',    'Immutable forensic trail of all AI-recommended and executed commands'],
-                ],
-              },
-              diagram: `graph TD
-  A[Wazuh EDR Agents] -->|Telemetry| B[Python Middleware]
-  C[Docker Containers] -->|Container Logs| B
-  B --> D[Splunk HEC]
-  B --> E[Elastic SIEM]
-  D --> F[Correlation Engine]
-  E --> G[Detection Rules]
-  F & G --> H{High Severity?}
-  H -->|Yes| I[Anthropic API]
-  I --> J[Validate Commands]
-  J --> K[Execute Remediation]
-  K --> L[GitHub Audit Trail]
-  H -->|No| M[Standard Alert Queue]`,
-            }
-          },
-
           'gwl-app': {
             type: 'file',
             data: {
@@ -1042,15 +1146,28 @@ Privacy compliance was a first-class requirement from day one, not bolted on aft
                 ],
               },
               diagram: `graph TD
-  A[React Native Client] -->|Request| B[Firebase Auth]
-  B -->|JWT Token| C[Firestore]
-  C --> D{Security Rules Evaluation}
-  D -->|Check Role Claim| E[Role Valid?]
-  E -->|Yes| F[Data Access Granted]
-  E -->|No| G[403 Rejected]
-  F --> H[Role-Gated Response]
-  F --> I[Access Log Entry]
-  H --> A`,
+  subgraph CLIENT["MOBILE CLIENT"]
+    APP["React Native App\niOS + Android"]
+  end
+
+  subgraph AUTH["AUTHENTICATION"]
+    FA["Firebase Auth\nJWT Token Issuance"]
+    RC["Role Claim\nOrg-Level Assignment"]
+    FA --> RC
+  end
+
+  subgraph DB["FIRESTORE DATABASE"]
+    SR{"Security Rules\nServer-Side Eval"}
+    DATA["Role-Gated Data"]
+    LOG["Access Audit Log"]
+  end
+
+  APP -->|Login Request| FA
+  FA -->|JWT + Role Claim| SR
+  SR -->|Role Valid| DATA
+  SR -->|Role Invalid| DENY["403 Rejected\nNo Data Returned"]
+  DATA --> LOG
+  DATA -->|Minimised Response| APP`,
             }
           },
 
@@ -1113,16 +1230,36 @@ Integrated **Anthropic Claude** for intelligent ride recommendations — accepts
                 ],
               },
               diagram: `graph TD
-  A[User Request] --> B[Flask Route Handler]
-  B --> C{RBAC Check}
-  C -->|Driver| D[Driver Endpoints]
-  C -->|Passenger| E[Passenger Endpoints]
-  D & E --> F[pymysql Query Layer]
-  F --> G[MySQL - BCNF Schema]
-  G --> H[Query Result]
-  H --> I[JSON Response]
-  A -->|Natural Language| J[Anthropic Claude API]
-  J --> F`,
+  subgraph UI["FRONTEND"]
+    BR["Browser Client\nHTML / CSS / JS"]
+    NL["Natural Language Query\nride recommendation"]
+  end
+
+  subgraph API["FLASK BACKEND"]
+    RH["Route Handler"]
+    RBAC{"RBAC Check\nDriver / Passenger"}
+    PQ["pymysql\nParameterized Query"]
+    RH --> RBAC
+    RBAC -->|authorized| PQ
+    RBAC -->|denied| REJ["403 Rejected"]
+  end
+
+  subgraph DB["MYSQL - BCNF SCHEMA"]
+    RI["Rides Table"]
+    BK["Bookings Table"]
+    RT["Ratings Table"]
+    US["Users + Bcrypt Hash"]
+  end
+
+  subgraph AI["ANTHROPIC CLAUDE"]
+    CL["Natural Language\nride matching"]
+  end
+
+  BR --> RH
+  NL --> CL
+  CL --> PQ
+  PQ --> DB
+  DB --> BR`,
             }
           },
 
