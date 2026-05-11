@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
 <style>
   :root {
     --base: #1e1e2e;
@@ -305,6 +306,24 @@
   .diagram-wrap { background:var(--mantle); border:1px solid var(--surface1); border-radius:8px; padding:24px 16px; margin-bottom:8px; overflow-x:auto; }
   .diagram-wrap .mermaid { display:flex; justify-content:center; }
 
+  /* markdown-rendered description */
+  .project-desc h2 { font-size:15px; font-weight:700; color:var(--text); margin:28px 0 8px; padding-bottom:6px; border-bottom:1px solid var(--surface1); }
+  .project-desc h3 { font-size:13px; font-weight:600; color:var(--mauve); margin:20px 0 6px; letter-spacing:0.02em; }
+  .project-desc h4 { font-size:12px; font-weight:600; color:var(--blue); margin:14px 0 4px; }
+  .project-desc strong { color:var(--text); font-weight:600; }
+  .project-desc em { color:var(--subtext0); font-style:italic; }
+  .project-desc img { max-width:100%; border-radius:8px; border:1px solid var(--surface1); margin:16px 0; display:block; box-shadow:0 4px 24px rgba(0,0,0,0.4); }
+  .project-desc blockquote { border-left:3px solid var(--mauve); padding:10px 16px; margin:16px 0; color:var(--subtext0); background:var(--surface0); border-radius:0 6px 6px 0; font-size:13px; }
+  .project-desc code { background:var(--surface0); color:var(--green); padding:2px 7px; border-radius:4px; font-family:'JetBrains Mono',monospace; font-size:11px; border:1px solid var(--surface1); }
+  .project-desc pre { background:var(--mantle); border:1px solid var(--surface1); border-radius:8px; padding:16px; overflow-x:auto; margin:16px 0; }
+  .project-desc pre code { background:none; border:none; padding:0; color:var(--text); font-size:12px; line-height:1.7; }
+  .project-desc ul, .project-desc ol { padding-left:22px; margin:8px 0 12px; color:var(--subtext1); font-size:14px; line-height:1.85; }
+  .project-desc li { margin-bottom:3px; }
+  .project-desc a { color:var(--blue); text-decoration:none; }
+  .project-desc a:hover { text-decoration:underline; }
+  .project-desc hr { border:none; border-top:1px solid var(--surface1); margin:28px 0; }
+  .project-desc p { margin-bottom:12px; }
+
   @media(max-width:640px){
     #terminal-window.fullscreen { inset:0; border-radius:0; }
     #project-viewer { padding:20px; }
@@ -397,13 +416,29 @@ const FILE_SYSTEM = {
                 { label: 'LangGraph', cls: 'tag-mauve' },
                 { label: 'Active', cls: 'tag-green' },
               ],
-              description: `An autonomous agent that ingests CVE specifications and automatically sets up Docker exploit environments to simulate vulnerability reproduction. Built as part of the SFU Cybersecurity & AI Research lab, and proposed to Trend Micro for accelerating zero-day to n-day lifecycle management.
+              description: `## Executive Summary
+An autonomous agent that ingests CVE specifications and automatically sets up Docker exploit environments to simulate vulnerability reproduction. Built at the **SFU Cybersecurity & AI Research Lab**, it improved Docker build success from **51% to 86%** across 400+ CVEs and was proposed to **Trend Micro** for zero-day to n-day lifecycle acceleration.
 
-The core challenge was the 49% failure rate in the original CVE-Genie (2025) framework when handling complex C++ and Java environments. The solution was a hybrid deterministic-agentic architecture: deterministic logic handles environment scaffolding and dependency resolution, while an LLM agent manages the non-deterministic edge cases that static pipelines can't anticipate.
+## The Problem
+The original [CVE-Genie (2025)](https://github.com) framework had a **49% failure rate** when handling complex C++ and Java environments. Static pipelines couldn't handle the non-deterministic edge cases that arise when building diverse CVE exploit environments at scale.
 
-Key engineering decisions: a universal language agent detector that identifies the target language from CVE metadata and selects the appropriate build strategy, and an automated rollback system that captures build state at checkpoints and recovers from failure without human intervention. Docker build success improved from 51% to 86%.
+## The Solution
+A **hybrid deterministic-agentic architecture**:
+- **Deterministic layer** handles environment scaffolding, dependency resolution, and checkpoint management
+- **Agentic layer** (LangGraph) handles the non-deterministic edge cases the static pipeline can't anticipate
 
-A processing engine parsed and categorized 400+ distinct CVEs to determine exploitability — classifying by attack vector, complexity, privileges required, and available proof-of-concept references.`,
+> The key insight: not everything needs an LLM. Use deterministic logic where patterns exist, and reserve the agent for true edge cases. This keeps costs low and latency predictable.
+
+## Key Engineering Decisions
+
+### Universal Language Detector
+Reads CVE metadata to identify the target language and selects the appropriate build strategy — Python, C++, Java, or generic — before any Docker work begins.
+
+### Automated Rollback System
+Captures build state at checkpoints. On failure, the LLM agent diagnoses the error, generates a fix, and the rollback system restores state and retries — no human intervention required.
+
+### CVE Processing Pipeline
+Parsed and categorized **400+ CVEs** by attack vector, complexity, privileges required, and PoC availability to determine exploitability at scale.`,
               tech: ['C++', 'Python', 'Docker', 'LangGraph', 'LLM Integration', 'Agentic Workflows'],
               features: [
                 { title: '// 86% Build Success', desc: 'Universal language detector + automated rollback system — up from 51% in the baseline CVE-Genie framework' },
@@ -1395,7 +1430,7 @@ function buildHTML(d) {
     </div>
     <div class="divider"></div>
     <div class="section-label">// overview</div>
-    <div class="project-desc" style="white-space:pre-line">${esc(d.description)}</div>
+    <div class="project-desc">${marked.parse(d.description)}</div>
     ${d.stats.length?`<div class="stat-row">${stats}</div><div class="divider"></div>`:''}
     ${d.steps&&d.steps.length?`
       <div class="section-label">// approach</div>
