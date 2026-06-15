@@ -560,117 +560,211 @@ Parsed and categorized **400+ CVEs** by attack vector, complexity, privileges re
             }
           },
 
-          'sentinel-soar': {
+          'agentic-soar': {
             type: 'file',
             data: {
-              title: 'Sentinel SOAR — Autonomous Multi-SIEM Intelligence Pipeline',
-              subtitle: 'Wazuh + Elastic + Splunk + Claude AI — closed-loop threat detection and remediation',
+              title: 'Agentic SOC Operator',
+              subtitle: 'Three-tier, production-grade SOAR — Elastic detection lab → autonomous LangGraph engine → enterprise distributed cluster',
               tags: [
                 { label: 'SOAR', cls: 'tag-red' },
+                { label: 'LangGraph', cls: 'tag-mauve' },
                 { label: 'Anthropic API', cls: 'tag-mauve' },
                 { label: 'Active', cls: 'tag-green' },
               ],
-              description: `## Executive Summary
-A **Security Orchestration, Automation and Response (SOAR)** pipeline integrating Wazuh EDR, Elastic SIEM, and Splunk HEC with enrichment from six external threat intel sources. **Claude AI** maps alerts to CVEs, generates remediation strategies, and an Active Response Agent executes validated commands — maintaining a cryptographically immutable forensic audit trail throughout.
+              description: `## Architecture Overview
 
-## Telemetry Collection
-Three complementary collection layers feed the pipeline:
-- **Wazuh EDR** — host-based detection: file integrity monitoring, rootkit detection, registry changes, process injection
-- **Elastic SIEM** — network-level: Sysmon events, east-west traffic, lateral movement detection
-- **Docker container logs** — containerized service telemetry for escape and anomalous spawn detection
+A **three-tier, production-grade SOAR platform** built across detection engineering, autonomous remediation, and enterprise cluster layers. Every LangGraph node emits OTel spans to Jaeger, every audit record links into a SHA-256 Merkle chain, and every human Deny vote adapts the routing threshold — the platform gets smarter with use.
 
-## Threat Intelligence Enrichment
-Every alert and observable is enriched against six external sources before analysis:
-- **AbuseIPDB** — IP reputation scoring and abuse confidence rating
-- **TAXII / STIX** — structured threat intel feeds (ATT&CK, ISACs, government feeds)
-- **VirusTotal** — file hash and URL reputation across 70+ AV engines
-- **OTX AlienVault** — open threat exchange — IOC correlation and pulse matching
-- **MISP** — malware information sharing platform — community threat data
-- **Shodan** — asset exposure context for IPs observed in alerts
+## Tier 1 — Research & Detection Engineering Lab (Elastic SIEM)
 
-## Claude AI Analyst
-Enriched alerts are passed to Claude with full context — telemetry, enrichment data, MITRE ATT&CK mapping, and historical incidents. Claude generates:
-1. **CVE mapping** — links observable TTPs to known vulnerabilities
-2. **Remediation strategy** — specific validated commands (iptables, chmod, kill) with reasoning
-3. **Triage priority** — risk score considering asset criticality and threat actor profile
+\`\`\`
+[ Parrot OS / Kali ] → [ Win 11 / Ubuntu VM ] → [ Elastic Agent ] → [ Elastic Cloud SIEM ]
+   Threat Emulation       Target Victim Host        Sysmon + Zeek      IOC + TTP Extraction
+                                                                                │
+                                                                     [ Operationalize Rules ]
+                                                                       Map to MITRE ATT&CK
+                                                                                │
+                                                                         [ Feeds into Tier 2 ]
+\`\`\`
 
-> Design constraint: Claude recommends, pipeline validates, agent executes. No command runs without a validation gate — prevents destructive actions under adversarial conditions.
+Detection rule sets validated against live adversary traffic: lateral movement (SMB/WMI), privilege escalation (token impersonation), persistence (scheduled tasks, registry run keys), credential access (LSASS, SAM), C2 beaconing (jitter-pattern analysis), container escape (cgroup namespace transitions).
 
-## Forensic Audit Trail
-Every LLM recommendation and executed command is appended to an **immutable GitHub ledger** — signed commits provide a tamper-evident forensic record of every autonomous decision.`,
-              tech: ['Wazuh', 'Elastic', 'Splunk', 'Docker', 'Python', 'Anthropic API', 'AbuseIPDB', 'TAXII/STIX', 'VirusTotal', 'MISP'],
+> **Architecture note:** The Kibana → Elasticsearch REST API polling model mirrors Cortex XSOAR production design — periodic poll loops rather than push-based streams simplify reliability and backpressure handling.
+
+## Tier 2 — Autonomous Production SOAR Engine (Wazuh → Splunk → LangGraph)
+
+1. **Wazuh EDR** (FIM / auth logs) → **Python Log Orchestrator** (intercepts raw JSON stream)
+2. Orchestrator fans out → **Splunk HEC** (forensics + dashboards) + **GitHub Audit Ledger** (immutable state)
+3. **LangGraph Agent Brain** (deterministic state machine):
+   - *Ingestion Node* — classify threat type and severity
+   - *Intel Enrichment Node* — AbuseIPDB · VirusTotal · OTX · Shodan · MISP parallel fan-out via \`ThreadPoolExecutor\`
+   - *Remediation Architect* — builds safe command with guardrails + allowlist
+4. **Claude AI Analyst** — generates specific mitigation command with reasoning
+5. **Active Response Agent** → live host: \`iptables DROP\` / \`chmod\` — closed-loop containment
+
+## Tier 3 — Enterprise Distributed SOAR Cluster
+
+**FastAPI Ingestion Gateway** (500 req/min, 3-stage filter — pure in-process, zero I/O until an alert passes all three):
+1. Sigma noise match? → DROP
+2. Redis dedup: seen in 10 minutes? → DROP (one \`EXISTS\` check)
+3. Brute-force below threshold? → DROP
+
+**RabbitMQ** — durable event bus, alert survives broker restart
+
+**Semantic Deduplication** (\`workers.py\`): \`all-MiniLM-L6-v2\` → 384-dim vector, Qdrant cosine similarity with 10-min lookback — ≥ 90% similar → bundle into master incident; < 90% → promote to LangGraph
+
+**4-Node LangGraph Pipeline** (\`tasks.py\`):
+
+**Node 1 — 6-Source Threat Intel** (parallel \`ThreadPoolExecutor\`):
+
+| Source | Contribution | Max |
+|--------|-------------|-----|
+| AbuseIPDB confidence | score/100 × 3.0 | 3.0 |
+| AbuseIPDB TOR flag | flat bonus | 1.0 |
+| VirusTotal malicious | vendors/90 × 2.0 | 2.0 |
+| OTX AlienVault pulses | count × 0.2 | 2.0 |
+| Shodan exposed CVEs | count × 0.3 | 1.5 |
+| MISP attribute hits | count × 0.25 | 1.0 |
+
+**Node 2 — MITRE ATT&CK Mapping**: keyword scan → T-codes or T1078 fallback
+
+**Adaptive Risk Router**: Redis threshold (7.5 default, feedback-driven)
+
+**HITL State Freeze** (PostgreSQL checkpoint): ≥ 7.5 → SSE push → HITL card appears in Next.js dashboard < 2s
+
+**Node 3 — Active Containment**: \`iptables DROP\` with \`DRY_RUN\` guard + IP validation
+
+**Node 4 — Merkle-Chained Audit**:
+\`\`\`
+row_hash = SHA256( seq | logged_at | incident_id | event_json | prev_hash )
+\`\`\`
+Chain anchored at \`SHA256("GENESIS")\` — PII scrub (RFC 1918 + email patterns), PostgreSQL persistence, optional Splunk HEC forward.
+
+## Adaptive HITL Intelligence
+
+Every Deny click writes to \`hitl_feedback\` (PostgreSQL):
+- Every **5 denies** on the same \`alert_type\` → threshold rises **+0.5** (live Redis write, no worker restart)
+- Every **10 denies** → **Claude Haiku** reads the 10 most recent false-positive raw logs and auto-generates a **Sigma suppression YAML** → written to \`SIEM-Detection/sigma/candidates/\` for analyst review before CI deploy
+
+## Observability
+
+Every LangGraph node wrapped in an OTel span exported to **Jaeger via OTLP gRPC**. A \`_NoopTracer\` fallback keeps the pipeline running in CI without a full Docker stack.
+
+**Prometheus \`/metrics\`**: \`soar_alerts_total\` · \`soar_containments_total\` · \`soar_hitl_pending\` · \`soar_detection_threshold\` (live adaptive value)
+
+## Enterprise Hardening Roadmap
+
+| Feature | Status | File |
+|---------|--------|------|
+| 6-source parallel threat intel | ✅ | intel.py |
+| Merkle-chained audit + PII scrub | ✅ | audit.py |
+| Adaptive HITL feedback loop | ✅ | feedback.py |
+| OTel tracing on all 4 nodes | ✅ | tasks.py |
+| Prometheus /metrics endpoint | ✅ | app.py |
+| PostgreSQL HITL checkpointing | ✅ | tasks.py |
+| Semantic deduplication | ✅ | workers.py |
+| DRY_RUN guard + IP validation | ✅ | workers.py |
+| Dead-letter queue + circuit breaker | 🔲 | — |
+| TheHive / Jira case management | 🔲 | — |
+| STIX 2.1 IOC export + TAXII | 🔲 | — |
+| Firewall API (PAN-OS / AWS WAF) | 🔲 | — |
+| Velociraptor forensic collection | 🔲 | — |`,
+              tech: ['FastAPI', 'RabbitMQ', 'Redis', 'PostgreSQL', 'Qdrant', 'LangGraph', 'Anthropic API', 'Wazuh', 'Elastic Cloud', 'Splunk HEC', 'OTel/Jaeger', 'Prometheus', 'Next.js', 'Sigma', 'Docker', 'Celery'],
               features: [
-                { title: '// 6-Source Enrichment', desc: 'AbuseIPDB · TAXII/STIX · VirusTotal · OTX AlienVault · MISP · Shodan — every alert enriched before analysis' },
-                { title: '// Claude AI Analyst', desc: 'CVE mapping, remediation strategy generation, and triage prioritization — full alert context passed to Claude' },
-                { title: '// Closed-Loop Remediation', desc: 'Active Response Agent executes validated commands autonomously — iptables, chmod, process kill' },
-                { title: '// Immutable Audit Trail', desc: 'Signed GitHub commits for every AI recommendation and executed action — tamper-evident forensic record' },
+                { title: '// 3-Tier Architecture', desc: 'Detection Lab (Elastic + Sysmon/Zeek) → Autonomous SOAR Engine (Wazuh → LangGraph) → Enterprise Cluster (FastAPI + RabbitMQ + Qdrant) — 8 containers' },
+                { title: '// Adaptive HITL Feedback', desc: 'Every 5 analyst Denies raises the routing threshold +0.5 in Redis (no restart). Every 10 Denies triggers Claude Haiku to generate a Sigma suppression YAML for review.' },
+                { title: '// Semantic Dedup', desc: 'all-MiniLM-L6-v2 → 384-dim vectors, Qdrant cosine search with 10-min lookback — ≥90% similarity bundles into master incident before reaching the AI analyst' },
+                { title: '// Merkle-Chained Audit', desc: 'SHA256(seq|timestamp|incident_id|event_json|prev_hash) — chain anchored at SHA256("GENESIS"), PII-scrubbed, verifiable without a trusted third party' },
+                { title: '// OTel / Prometheus', desc: 'Every LangGraph node wrapped in OTel span → Jaeger trace waterfall. _NoopTracer fallback for CI. Live Prometheus metrics: alerts, containments, HITL queue depth, adaptive threshold.' },
+                { title: '// 6-Source Intel Fan-Out', desc: 'AbuseIPDB · VirusTotal · OTX · Shodan · MISP queried in parallel via ThreadPoolExecutor — composite 0–10 score, missing key degrades gracefully to {} not failure' },
               ],
-              stats: [{ n: '6', l: 'Intel Sources' }, { n: 'Claude', l: 'AI Analyst' }, { n: 'Mar 2026–', l: 'Timeline' }],
+              stats: [{ n: '8', l: 'Containers' }, { n: '6', l: 'Intel Sources' }, { n: 'Mar 2026–', l: 'Timeline' }],
               steps: [
-                { n:'01', title: 'EDR & SIEM Deployment', desc: 'Deploy Wazuh agents and Elastic SIEM across endpoints for host and network telemetry collection.' },
-                { n:'02', title: 'Threat Intel Integration', desc: 'Connect AbuseIPDB, TAXII, VirusTotal, OTX, MISP, and Shodan APIs to the enrichment engine.' },
-                { n:'03', title: 'Python Orchestration Layer', desc: 'Build middleware to ingest telemetry, enrich observables, route events to Splunk HEC by severity.' },
-                { n:'04', title: 'Claude AI Integration', desc: 'Wire enriched alert context to Claude API for CVE mapping, remediation generation, and triage scoring.' },
-                { n:'05', title: 'Active Response + Audit', desc: 'Deploy response agent with validation gate, append every action to immutable GitHub forensic ledger.' },
+                { n:'01', title: 'Tier 1 — Detection Lab', desc: 'Deploy Parrot OS / Kali adversary node, Win 11 / Ubuntu victim VM, Elastic Agent with Sysmon + Zeek. Build 6-rule SIEM detection library validated against live traffic.' },
+                { n:'02', title: 'Tier 2 — SOAR Engine', desc: 'Wire Wazuh → Python Log Orchestrator → Splunk HEC + GitHub Audit Ledger → LangGraph Agent Brain → Claude AI Analyst → Active Response Agent.' },
+                { n:'03', title: 'Tier 3 — Enterprise Cluster', desc: 'Add FastAPI gateway (3-stage filter), RabbitMQ durable bus, semantic dedup (all-MiniLM + Qdrant), 4-node LangGraph, PostgreSQL HITL checkpointing.' },
+                { n:'04', title: 'Adaptive Intelligence', desc: 'Implement HITL feedback loop — Deny clicks write to PostgreSQL, raise Redis threshold, trigger Claude Haiku Sigma YAML generation at 10-deny milestones.' },
+                { n:'05', title: 'Observability', desc: 'Wrap all nodes in OTel spans → Jaeger. Expose Prometheus /metrics. Build Next.js operator dashboard with SSE HITL cards (< 2s latency). Add _NoopTracer for CI compatibility.' },
               ],
               table: {
-                headers: ['Component', 'Layer', 'Responsibility'],
+                headers: ['Feature', 'Status', 'File'],
                 rows: [
-                  ['Wazuh EDR',          'Telemetry',    'Host-based detection — FIM, rootkit, registry, process injection monitoring'],
-                  ['Elastic SIEM',        'Telemetry',    'Network-level detection — Sysmon, east-west traffic, lateral movement'],
-                  ['Python Orchestrator', 'Processing',   'Ingests telemetry, coordinates enrichment, routes to Splunk HEC by severity'],
-                  ['Enrichment Engine',   'Intel',        'Queries AbuseIPDB, VirusTotal, OTX, MISP, TAXII, Shodan per observable'],
-                  ['Splunk HEC',          'Analytics',    'Forensic dashboards, detection rule evaluation, MITRE ATT&CK correlation'],
-                  ['Claude AI Analyst',   'Reasoning',    'CVE mapping, remediation strategy gen, triage priority scoring'],
-                  ['Response Agent',      'Execution',    'Validated closed-loop remediation — iptables, chmod, process kill'],
-                  ['GitHub Audit Ledger', 'Compliance',   'Signed, immutable forensic record of every AI decision and executed command'],
+                  ['6-source parallel threat intel',       '✅ Implemented', 'intel.py'],
+                  ['Merkle-chained audit + PII scrub',      '✅ Implemented', 'audit.py'],
+                  ['Adaptive HITL feedback loop',           '✅ Implemented', 'feedback.py'],
+                  ['OTel tracing on all 4 nodes',           '✅ Implemented', 'tasks.py'],
+                  ['Prometheus /metrics endpoint',           '✅ Implemented', 'app.py'],
+                  ['PostgreSQL HITL checkpointing',          '✅ Implemented', 'tasks.py'],
+                  ['Semantic deduplication (Qdrant)',        '✅ Implemented', 'workers.py'],
+                  ['DRY_RUN guard + IP validation',          '✅ Implemented', 'workers.py'],
+                  ['Dead-letter queue + circuit breaker',    '🔲 Planned',     '—'],
+                  ['TheHive / Jira case management',         '🔲 Planned',     '—'],
+                  ['STIX 2.1 IOC export + TAXII endpoint',  '🔲 Planned',     '—'],
+                  ['Firewall API (PAN-OS / AWS WAF)',        '🔲 Planned',     '—'],
+                  ['Velociraptor forensic collection',       '🔲 Planned',     '—'],
                 ],
               },
               diagram: `graph TD
-  subgraph TEL["SECURITY TELEMETRY"]
-    W["Wazuh EDR\nHost / FIM / Rootkit"]
-    EL["Elastic SIEM\nNetwork / Sysmon"]
-    DK["Docker Containers\nContainerized Logs"]
+  subgraph T1["TIER 1 — ELASTIC SIEM DETECTION LAB"]
+    direction LR
+    ATK["Parrot OS / Kali\nThreat Emulation"]
+    VM["Win 11 / Ubuntu\nTarget Victim VM"]
+    EA["Elastic Agent\nSysmon + Zeek"]
+    ELC["Elastic Cloud SIEM\nIOC + TTP Extraction"]
+    MX["MITRE ATT&CK\nOperationalize Rules"]
+    ATK --> VM --> EA --> ELC --> MX
   end
 
-  subgraph INTEL["THREAT INTEL FEEDS"]
-    AB[AbuseIPDB]
-    TX[TAXII / STIX]
-    VT[VirusTotal]
-    OT[OTX AlienVault]
-    MI[MISP]
-    SH[Shodan]
+  subgraph T2["TIER 2 — AUTONOMOUS SOAR ENGINE"]
+    direction LR
+    WZ["Wazuh EDR\nFIM / Auth Logs"]
+    OR["Python Log Orchestrator\nRaw JSON Intercept"]
+    SP["Splunk HEC\nForensics + Dashboards"]
+    GA["GitHub Audit Ledger\nImmutable State"]
+    LG["LangGraph Agent Brain\nDeterministic State Machine"]
+    IE["Intel Enrichment\nAbuseIPDB + VT + OTX + Shodan + MISP"]
+    AI["Claude AI Analyst\nGenerate Safe Command"]
+    AR["Active Response Agent\niptables DROP / chmod"]
+    WZ --> OR --> SP & GA --> LG --> IE --> AI --> AR
   end
 
-  TEL --> OR["Python Log Orchestrator"]
-  INTEL --> EN["Data Enrichment Engine"]
-  OR <--> EN
+  subgraph T3["TIER 3 — ENTERPRISE CLUSTER"]
+    direction LR
+    FA["FastAPI Gateway\n500 req/min · 3-stage filter"]
+    MQ["RabbitMQ\nDurable Event Bus"]
+    SD["Semantic Dedup\nall-MiniLM + Qdrant 90%"]
+    LG3["4-Node LangGraph\nIntel → ATT&CK → HITL → Audit"]
+    PG["PostgreSQL\nHITL Checkpoint"]
+    FB["Adaptive Feedback\nthreshold +0.5 per 5 denies"]
+    NX["Next.js Dashboard\nSSE HITL Cards under 2s"]
+    OT["Jaeger\nOTel Trace Waterfall"]
+    PR["Prometheus\n/metrics endpoint"]
+    FA --> MQ --> SD --> LG3 --> PG --> FB --> NX
+    OT & PR --> NX
+  end
 
-  OR --> SP["Splunk SIEM - HEC\nForensics and Dashboards"]
-  OR --> GA["GitHub Audit Ledger\nImmutable Forensic Record"]
-
-  SP --> AI
-  GA --> AI["Claude AI Analyst\nCVE Mapping and Strategy Gen"]
-
-  AI --> AR["Active Response Agent\nClosed-Loop Remediation"]
-  AR -->|"iptables / chmod / kill"| EP[Endpoint]
-  AR --> GA`,
+  T1 -->|validated rules| T2
+  T2 -->|telemetry| T3`,
               challenges: [
                 {
-                  problem: 'Wazuh and Elastic produce different alert schemas — merging them into a single normalized event for enrichment without losing source-specific context fields.',
-                  fix: 'Built a schema normalization layer in the Python Orchestrator that maps both alert formats to a canonical internal schema, preserving raw source fields in a passthrough object for Splunk.',
+                  problem: 'Near-duplicate alerts (e.g., 400 failed SSH logins from the same IP in 60s) each triggered full 6-source enrichment and AI analysis — exponential API cost for a single linear threat event.',
+                  fix: 'all-MiniLM-L6-v2 embeds each alert into a 384-dim vector before enrichment. Qdrant cosine similarity search with a 10-minute lookback window: ≥90% match bundles into the master incident and discards — only one AI call per logical threat event.',
                 },
                 {
-                  problem: 'Alert fatigue: Claude was receiving hundreds of low-severity events per minute and generating remediation strategies for each, creating noise and burning API quota.',
-                  fix: 'Added a severity gating layer — only alerts scoring 7.0+ CVSS after enrichment are forwarded to Claude. Lower severity events are batched into a daily digest for trend analysis.',
+                  problem: 'Fixed routing threshold (7.5) produced false positives for certain alert types — the same threshold that routes SSH brute-force correctly over-triggers on noisy port scans from known scanners.',
+                  fix: 'Adaptive feedback loop in feedback.py: every Deny click writes to hitl_feedback (PostgreSQL). Every 5 denies on the same alert_type raises the Redis threshold +0.5 (live write, no restart). Every 10 denies triggers Claude Haiku to generate a Sigma suppression YAML for analyst review.',
                 },
                 {
-                  problem: 'The Active Response Agent could issue destructive commands (iptables DROP, kill -9) based on a mis-classified alert — no human review in a fully autonomous loop.',
-                  fix: 'Introduced a validation gate: every command Claude recommends is checked against a whitelist of allowed actions and a dry-run simulation before execution. Destructive commands require a confidence score above 0.92.',
+                  problem: 'OTel instrumentation failed in CI without a running Jaeger container — import errors crashed the entire pipeline if the OTLP endpoint was unreachable.',
+                  fix: 'Wrapped every OTel initializer in a try/except that falls back to a _NoopTracer. The pipeline runs fully in CI without Docker stack — traces are simply dropped. Production with Jaeger running gets full trace waterfall; CI gets zero overhead.',
+                },
+                {
+                  problem: 'The Active Response Agent executing live iptables DROP based on a mis-scored alert could block legitimate traffic with no rollback path — destructive action in a fully autonomous loop.',
+                  fix: 'DRY_RUN=true is the default in .env. Live execution requires explicit opt-in. Additionally, every IP is validated against an RFC 1918 exclusion list and a DNS reverse-lookup gate before any rule is applied. Containment actions are logged to the Merkle chain before execution — rollback is a manual audit step.',
                 },
               ],
               links: [
-                { label: '⬡ GitHub', url: 'https://github.com/VincentSuen6', cls: 'github' },
+                { label: '⬡ GitHub', url: 'https://github.com/VincentSuen6/agentic-SOC-operator', cls: 'github' },
               ],
             }
           },
@@ -1409,6 +1503,289 @@ Integrated **Anthropic Claude** for intelligent ride recommendations — accepts
                 {
                   problem: 'The Claude chatbot was receiving the full ride table in its context to match natural language queries — this leaked all PII (user names, emails, phone numbers) to the LLM on every request.',
                   fix: 'Pre-filter candidate rides using SQL before passing to Claude: run a keyword-matched SQL query first, then pass only anonymized ride fields (origin, destination, time, seats) to the Claude context — no PII ever reaches the model.',
+                },
+              ],
+              links: [
+                { label: '⬡ GitHub', url: 'https://github.com/VincentSuen6', cls: 'github' },
+              ],
+            }
+          },
+
+          'aegisloop': {
+            type: 'file',
+            data: {
+              title: 'AegisLoop',
+              subtitle: 'Automated WAF enforcement boundary testing — 10-module catalog with MITRE T-codes, OWASP mapping, and CVSS-weighted residual risk scoring',
+              tags: [
+                { label: 'Security Testing', cls: 'tag-red' },
+                { label: 'Python', cls: 'tag-peach' },
+                { label: 'GitHub Actions', cls: 'tag-mauve' },
+                { label: 'Active', cls: 'tag-green' },
+              ],
+              description: `## Executive Summary
+AegisLoop is an automated **WAF (Web Application Firewall) enforcement boundary testing framework** — it probes the boundary between what the WAF claims to block and what the application actually receives. The enforcement boundary is real infrastructure, not a simulation, so bypasses surface genuine protection gaps.
+
+## Why Enforcement Boundaries Matter
+A WAF rule that blocks at the proxy layer but passes a variant to the backend is not a test artifact — it's a real bypass. AegisLoop specifically tests this distinction: **HTTP 403 (WAF blocked)** vs **HTTP 200 (backend received the payload)**. Every 200 on a malicious payload is an enforced protection gap with a CVSS score attached.
+
+## 10-Module Attack Catalog
+
+Each module maps to a MITRE ATT&CK technique, OWASP Top 10 category, and CVSS base score:
+
+| Module | MITRE T-Code | OWASP | CVSS |
+|--------|-------------|-------|------|
+| SQL Injection | T1190 | A03:2021 | 9.8 |
+| XSS (Reflected) | T1059.007 | A03:2021 | 6.1 |
+| XSS (Stored) | T1059.007 | A03:2021 | 8.8 |
+| SSRF | T1190 | A10:2021 | 8.6 |
+| Path Traversal | T1083 | A01:2021 | 7.5 |
+| Command Injection | T1059 | A03:2021 | 9.8 |
+| XXE Injection | T1190 | A05:2021 | 8.2 |
+| IDOR | T1078 | A01:2021 | 7.1 |
+| HTTP Header Injection | T1071.001 | A03:2021 | 6.4 |
+| JWT Algorithm Confusion | T1550.001 | A02:2021 | 8.1 |
+
+## WAF Telemetry Correlation
+The framework correlates WAF logs against backend application logs to classify each probe:
+- **HTTP 403** from WAF → rule fired, payload blocked ✓
+- **HTTP 200** from backend → WAF rule missed, payload reached application ✗
+- **HTTP 200 + WAF 403 mismatch** → bypass confirmed — WAF blocked the canonical form but passed a variant
+
+> The 403 vs 200 distinction is the core signal. A framework that only checks WAF status codes misses variants. AegisLoop sends the canonical form, URL-encoded variant, Unicode-escaped variant, and chunked-encoding variant for each payload.
+
+## CVSS-Weighted Residual Risk Scoring
+
+The residual risk score weights each bypass by its CVSS score and normalizes across the test surface:
+
+\`\`\`
+residual_risk = Σ(CVSS_i × bypass_i) / Σ(CVSS_i × total_i)
+\`\`\`
+
+Where \`bypass_i\` is 1 if the payload reached the backend, 0 if blocked. A score of 0.0 means all CVSS-weighted payloads were blocked; 1.0 means none were.
+
+## CI/CD Integration
+GitHub Actions workflow runs the full 10-module catalog on a **weekly schedule** and on every PR that touches WAF rule configuration. Results publish as a status badge and a structured JSON report — detection regressions break the build.`,
+              tech: ['Python', 'GitHub Actions', 'WAF Testing', 'OWASP', 'MITRE ATT&CK', 'CVSS Scoring', 'CI/CD'],
+              features: [
+                { title: '// 10-Module Catalog', desc: 'SQLi, XSS (2), SSRF, Path Traversal, Command Injection, XXE, IDOR, Header Injection, JWT confusion — all mapped to MITRE T-codes and OWASP categories' },
+                { title: '// Enforcement Boundary Testing', desc: 'HTTP 403 vs 200 correlation — verifying the payload did not reach the backend, not just checking WAF logs in isolation' },
+                { title: '// CVSS-Weighted Risk Score', desc: 'Residual risk = Σ(CVSS × bypass) / Σ(CVSS × total) — bypasses on critical vulnerabilities weight the score higher than low-severity misses' },
+                { title: '// GitHub Actions CI/CD', desc: 'Weekly automated runs + PR gate on WAF config changes — detection regressions break the build with structured JSON report and status badge' },
+              ],
+              stats: [{ n: '10', l: 'Attack Modules' }, { n: 'CVSS', l: 'Risk Scoring' }, { n: 'Apr 2026–', l: 'Timeline' }],
+              steps: [
+                { n:'01', title: 'Module Framework', desc: 'Build extensible module system — each module defines payloads, MITRE T-code, OWASP category, CVSS score, and variant generation strategy.' },
+                { n:'02', title: 'Payload Variant Engine', desc: 'For each canonical payload, generate URL-encoded, Unicode-escaped, and chunked-encoding variants — WAF evasion coverage beyond the basic case.' },
+                { n:'03', title: 'Telemetry Correlator', desc: 'Correlate WAF logs against backend logs per request ID — classify as blocked (403), bypass (200), or variant-bypass (403+200 mismatch).' },
+                { n:'04', title: 'CVSS Residual Risk Score', desc: 'Aggregate bypass results into CVSS-weighted residual risk score: Σ(CVSS×bypass) / Σ(CVSS×total) — normalized to [0,1].' },
+                { n:'05', title: 'GitHub Actions Integration', desc: 'Weekly cron + PR gate on WAF config changes. Regressions (score delta > threshold) fail the build. Badge and JSON report published as artifacts.' },
+              ],
+              table: {
+                headers: ['Module', 'MITRE T-Code', 'OWASP', 'CVSS'],
+                rows: [
+                  ['SQL Injection',          'T1190',      'A03:2021 — Injection',          '9.8'],
+                  ['XSS (Reflected)',         'T1059.007',  'A03:2021 — Injection',          '6.1'],
+                  ['XSS (Stored)',            'T1059.007',  'A03:2021 — Injection',          '8.8'],
+                  ['SSRF',                   'T1190',      'A10:2021 — SSRF',               '8.6'],
+                  ['Path Traversal',          'T1083',      'A01:2021 — Broken Access',      '7.5'],
+                  ['Command Injection',        'T1059',      'A03:2021 — Injection',          '9.8'],
+                  ['XXE Injection',           'T1190',      'A05:2021 — Security Misconfig', '8.2'],
+                  ['IDOR',                   'T1078',      'A01:2021 — Broken Access',      '7.1'],
+                  ['HTTP Header Injection',   'T1071.001',  'A03:2021 — Injection',          '6.4'],
+                  ['JWT Algorithm Confusion', 'T1550.001',  'A02:2021 — Auth Failures',      '8.1'],
+                ],
+              },
+              diagram: `graph TD
+  subgraph MODULES["10-MODULE ATTACK CATALOG"]
+    direction LR
+    M1["SQLi T1190\nCVSS 9.8"]
+    M2["XSS T1059.007\nCVSS 6.1-8.8"]
+    M3["SSRF T1190\nCVSS 8.6"]
+    M4["Path Traversal T1083\nCVSS 7.5"]
+    M5["Cmd Inject T1059\nCVSS 9.8"]
+    M6["XXE T1190\nCVSS 8.2"]
+    M7["IDOR T1078\nCVSS 7.1"]
+    M8["Header Inject T1071\nCVSS 6.4"]
+    M9["JWT Confusion T1550\nCVSS 8.1"]
+  end
+
+  subgraph VARIANTS["PAYLOAD VARIANT ENGINE"]
+    CV["Canonical Payload"]
+    UV["URL-Encoded Variant"]
+    UC["Unicode-Escaped Variant"]
+    CH["Chunked-Encoding Variant"]
+  end
+
+  MODULES --> VARIANTS
+
+  subgraph TARGET["ENFORCEMENT BOUNDARY"]
+    WAF["WAF / Nginx\nRule Enforcement"]
+    APP["Backend App\nBusiness Logic"]
+    WAF --> APP
+  end
+
+  VARIANTS -->|HTTP probe| TARGET
+
+  subgraph TELEMETRY["TELEMETRY CORRELATOR"]
+    W403["WAF Log\nHTTP 403 Blocked"]
+    A200["App Log\nHTTP 200 Reached Backend"]
+    COR{"Correlate\nby Request ID"}
+    W403 & A200 --> COR
+  end
+
+  TARGET --> TELEMETRY
+
+  COR -->|bypass confirmed| SCORE["CVSS-Weighted\nResidual Risk Score"]
+  SCORE --> RPT["JSON Report\nStatus Badge"]
+  RPT --> CI["GitHub Actions\nWeekly CI/CD Gate"]`,
+              challenges: [
+                {
+                  problem: 'WAF rule evaluation is not deterministic across payload variants — the same SQLi payload URL-encoded passes where the canonical form is blocked, but the WAF log shows a 403 either way.',
+                  fix: 'Instrument the backend application with a request-ID middleware that logs every received payload independently of WAF status. Telemetry correlation matches WAF log entries to backend log entries by request ID — 403+200 mismatch = confirmed bypass.',
+                },
+                {
+                  problem: 'CVSS scores are per-vulnerability-class but WAF bypass severity depends on whether the backend is actually vulnerable — a SQLi bypass against a parameterized query backend is lower risk than one against raw string concatenation.',
+                  fix: 'Added an exploitability modifier to the residual risk formula: backend is probed for actual vulnerability (not just payload receipt) and CVSS score is scaled by exploitability (0.0–1.0) before weighting. Score now reflects real risk, not theoretical maximum.',
+                },
+              ],
+              links: [
+                { label: '⬡ GitHub', url: 'https://github.com/VincentSuen6', cls: 'github' },
+              ],
+            }
+          },
+
+          'c2-framework': {
+            type: 'file',
+            data: {
+              title: 'C2 Framework',
+              subtitle: 'Ground-up command-and-control: jittered polling beacon, atomic task dispatch, Frida bridge — built to inform SIEM detection signatures',
+              tags: [
+                { label: 'Red Team', cls: 'tag-red' },
+                { label: 'C++ / Python', cls: 'tag-peach' },
+                { label: 'Frida', cls: 'tag-mauve' },
+                { label: 'Active', cls: 'tag-green' },
+              ],
+              description: `## Executive Summary
+A ground-up **Command and Control (C2) framework** built to understand the full adversary toolchain — server, beacon, operator interface, Frida instrumentation bridge, and the TTPs each component generates. Building it from scratch surfaces the exact telemetry signatures that SIEM detection rules should target.
+
+## Architecture
+
+### C2 Server
+The listener and task management layer:
+- **HTTP/S beacon listener** — accepts beacon registration and task poll requests
+- **Atomic task queue** — tasks are dispatched to beacons using atomic compare-and-swap to prevent double-delivery under concurrent polling
+- **Session ledger** — tracks active beacon sessions, last-seen timestamps, and task history per session
+- **Operator API** — authenticated interface for the operator console to push tasks and pull results
+
+### Beacon (Implant)
+The agent running on the target host:
+- **Registration** — beacon registers on first contact with a host fingerprint (OS, arch, username, hostname) — server assigns a session ID
+- **Jittered poll loop** — polls the C2 server on a configurable interval with random jitter (e.g., 30s ± 10s) to avoid periodic network signatures detectable by beacon interval analysis
+- **Atomic task dispatch** — each beacon atomically claims a task by ID; the server marks tasks claimed-by before returning — prevents double-execution on multi-session hosts
+- **Task executor** — handles command execution, file operations, and payload staging
+
+### Operator Console
+The command interface for controlling active sessions:
+- CLI-based operator interface for task dispatch (shell, upload, download, inject)
+- Session viewer showing active beacons, last-seen, and task queue status
+- Real-time result streaming from beacon callbacks
+
+### Frida Bridge
+Dynamic instrumentation layer for in-process analysis:
+- **Frida runtime injection** — attaches to target processes without recompile
+- **Hook engine** — intercepts API calls, function entry/return points, and memory operations at runtime
+- Surfaces function arguments and return values live — used for credential extraction, DRM bypass research, and protocol reverse engineering
+
+## Design Philosophy: TTPs → SIEM Detection Signatures
+Building this framework ground-up produces a precise map of the telemetry each component generates:
+
+- **Beacon registration**: HTTP POST with structured JSON body → Zeek HTTP log + Suricata JA3 fingerprint
+- **Jitter poll loop**: periodic HTTP GET at beacon interval ± jitter → beacon interval detection via ML or fixed-window count in Elastic SIEM
+- **Task execution**: cmd.exe / PowerShell child process spawned by the beacon → Sysmon Event ID 1 (process creation) with suspicious parent-child relationship
+- **Frida injection**: process open + DLL injection → Sysmon Event ID 8 (CreateRemoteThread) or Event ID 10 (ProcessAccess)
+
+> Knowing exactly what telemetry each TTP generates is what makes the Sentinel SOAR detection library precise. The C2 framework and the SIEM rule set are developed in tandem — each new evasion technique immediately gets a corresponding detection rule.`,
+              tech: ['C++', 'Python', 'Frida', 'HTTP/S', 'Sysmon', 'OPSEC / TTPs', 'Dynamic Instrumentation'],
+              features: [
+                { title: '// Jittered Poll Loop', desc: 'Configurable beacon interval with random jitter — avoids periodic network signatures detectable by beacon interval analysis in SIEM' },
+                { title: '// Atomic Task Dispatch', desc: 'Beacons claim tasks atomically server-side via compare-and-swap — prevents double-execution on multi-session hosts under concurrent polling' },
+                { title: '// Frida Bridge', desc: 'Dynamic instrumentation without recompile — hook API calls, intercept function arguments, surface live memory state at runtime' },
+                { title: '// SIEM Detection Parity', desc: 'Every TTP maps to a Sysmon/Zeek/Suricata signature — built in tandem with the Sentinel SOAR detection library' },
+              ],
+              stats: [{ n: '4', l: 'Components' }, { n: 'Frida', l: 'Instrumentation' }, { n: 'May 2026–', l: 'Timeline' }],
+              steps: [
+                { n:'01', title: 'C2 Server', desc: 'Build HTTP/S listener, session ledger, atomic task queue with compare-and-swap dispatch, and authenticated operator API.' },
+                { n:'02', title: 'Beacon Registration + Poll Loop', desc: 'Implement host fingerprint registration, session ID assignment, and jittered poll loop with configurable interval and jitter range.' },
+                { n:'03', title: 'Atomic Task Dispatch', desc: 'Server-side atomic task claiming: mark task as claimed-by before returning to beacon — prevents double-execution under concurrent sessions.' },
+                { n:'04', title: 'Operator Console', desc: 'Build CLI operator interface: session viewer, task dispatch (shell/upload/download/inject), and real-time result streaming from beacon callbacks.' },
+                { n:'05', title: 'Frida Bridge + TTP Mapping', desc: 'Integrate Frida instrumentation bridge, map each TTP to SIEM detection signatures, feed gaps back into Sentinel SOAR detection library.' },
+              ],
+              table: {
+                headers: ['Component', 'TTP Generated', 'SIEM Detection Signature'],
+                rows: [
+                  ['Beacon Registration',  'HTTP POST — host fingerprint JSON',    'Zeek HTTP log + Suricata JA3 fingerprint + User-Agent anomaly'],
+                  ['Jittered Poll Loop',   'Periodic HTTP GET at beacon interval', 'Beacon interval ML or fixed-window count in Elastic SIEM'],
+                  ['Task Execution',       'cmd.exe / PowerShell child process',   'Sysmon EID 1 — suspicious parent-child process relationship'],
+                  ['Frida Injection',      'Process open + DLL injection',         'Sysmon EID 8 (CreateRemoteThread) / EID 10 (ProcessAccess)'],
+                  ['File Operations',      'Read/write in sensitive paths',        'Sysmon EID 11/23 — file create/delete in monitored directories'],
+                  ['Operator API',         'Authenticated HTTP to C2 server',      'Zeek conn log — outbound HTTP to non-standard port or low-rep IP'],
+                ],
+              },
+              diagram: `graph TD
+  subgraph SERVER["C2 SERVER"]
+    direction LR
+    LIST["HTTP/S Listener\nBeacon Registration"]
+    TQ["Atomic Task Queue\nCompare-and-Swap Dispatch"]
+    SL["Session Ledger\nBeacon Registry"]
+    OAPI["Operator API\nAuthenticated Interface"]
+    LIST --> TQ --> SL
+    OAPI --> TQ
+  end
+
+  subgraph BEACON["BEACON — IMPLANT"]
+    direction LR
+    REG["Registration\nHost Fingerprint"]
+    POLL["Jittered Poll Loop\n30s ± 10s interval"]
+    EXEC["Task Executor\nShell / File / Inject"]
+    REG --> POLL --> EXEC
+  end
+
+  subgraph OPERATOR["OPERATOR CONSOLE"]
+    direction LR
+    CLI["CLI Interface\nTask Dispatch"]
+    SV["Session Viewer\nBeacon Status + Results"]
+  end
+
+  subgraph FRIDA["FRIDA BRIDGE"]
+    direction LR
+    FR["Frida Runtime\nProcess Injection"]
+    HOOK["Hook Engine\nAPI / Function Intercept"]
+    FR --> HOOK
+  end
+
+  subgraph TTP["TTP → SIEM DETECTION MAP"]
+    SY1["Sysmon EID 1\nProcess Creation"]
+    SY8["Sysmon EID 8\nCreateRemoteThread"]
+    ZK["Zeek HTTP\nBeacon Interval"]
+    JA["Suricata JA3\nTLS Fingerprint"]
+  end
+
+  OPERATOR --> SERVER
+  BEACON <-->|jittered poll| SERVER
+  FRIDA --> BEACON
+  BEACON --> TTP`,
+              challenges: [
+                {
+                  problem: 'Atomic task dispatch across concurrent beacon sessions: two beacons on the same host could both poll simultaneously and each receive the same pending task, causing double-execution.',
+                  fix: 'Server-side task claiming with compare-and-swap: task state transitions from pending → claimed:{session_id} atomically. The CAS fails for the second beacon — it receives no task and retries on the next poll cycle.',
+                },
+                {
+                  problem: 'Fixed beacon intervals create a detectable network signature — ML-based beacon detection in SIEM platforms identifies the periodic pattern within 5–10 poll cycles.',
+                  fix: 'Implemented configurable jitter as a percentage of the base interval (e.g., ±33%) applied via a uniform random draw each cycle. Inter-arrival time distribution becomes uniform over [base*(1-jitter), base*(1+jitter)] — no longer periodic.',
+                },
+                {
+                  problem: 'Frida injection via attach-to-running generates Sysmon Event ID 8 (CreateRemoteThread) and Event ID 10 (ProcessAccess) on every target process — immediately flagged by basic EDR rules.',
+                  fix: 'Switched to Frida spawn mode (spawn + resume): the instrumented process starts under Frida from birth, generating no CreateRemoteThread or ProcessAccess events. Documented this as a detection gap and added a corresponding Sentinel SOAR rule for process-start-under-frida.',
                 },
               ],
               links: [
